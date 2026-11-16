@@ -656,63 +656,21 @@ class MerchantController extends Controller{
                   ->where("statement.fyear",$selected_year)
                   ->where("statement.voucher_no",null)
                   ->orderBy("statement.opening","desc")
-                  ->orderBy(DB::raw("STR_TO_DATE(statement.st_date, '%d-%m-%Y')"),"asc")
+                  ->orderBy(DB::raw("COALESCE(STR_TO_DATE(statement.st_date, '%Y-%m-%d'), STR_TO_DATE(statement.st_date, '%d-%m-%Y'))"),"asc")
                   ->orderBy("statement.id","asc")
                   ->get(['statement.*', 'head.name']);
+         // Running balance of a bank account: opening + debit - credit.
+         // (The bank-side rows hold money received as Debit and money paid out
+         // as Credit, the same as the Trial Balance, so the two always agree.)
+         $toNumber = function($value){
+            $value = str_replace(',', '', (string)$value);
+            return is_numeric($value) ? (float)$value : 0;
+         };
+         $running = $bank ? ($toNumber($bank->debit) - $toNumber($bank->credit)) : 0;
          foreach ($data as $key => $row){
-            $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where fyear='".$selected_year."' and head_id='".$hid."' and merchant_id='".Session::get('merchant_id')."' and status=1 and opening=0 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE('".$row['st_date']."', '%d-%m-%Y')");
-            $pending_amount1 = $statement['0']->debitAmount - $statement['0']->creditAmount;
-            if($i==1){
-
-               if(!empty($row["credit"]) && $row["credit"]!="-"){
-                  if($bank){
-                     $pending_amount = (float)$bank->debit + (float)$row["credit"];
-                  }else{
-                     $pending_amount = $row["credit"];
-                  }
-                  
-               }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-                  if($bank){
-                     $pending_amount = (float)$bank->debit - (float)$row["debit"];
-                  }else{
-                     $pending_amount = $row["debit"];
-                  }
-                  
-               }
-               
-            }else{
-               if(!empty($row["credit"]) && $row["credit"]!="-"){
-                  $pending_amount = $penA + (float)$row["credit"];
-                  // if(!empty($dr)){
-                  //    $pending_amount = $penA + $dr;
-                  // }else if(!empty($cr)){
-                  //    $pending_amount = $penA - $cr;
-                  // }                     
-                  $dr = $row["credit"];
-                  $cr = "";
-               }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-                  $pending_amount = $penA - (float)$row["debit"];
-                  // if(!empty($dr)){
-                  //    $pending_amount = $penA + $dr;
-                  // }else if(!empty($cr)){
-                  //    $pending_amount = $penA - $cr;
-                  // }                     
-                  $cr = $row["debit"];
-                  $dr = "";
-               }
-            }
-            if($pending_amount<0){ 
-               //$balance = str_replace("-","",$pending_amount).' Cr';
-               $balance = $pending_amount;
-               $data[$key]->balance = number_format($balance,2);
-            }else{ 
-               // $balance = $pending_amount.' Dr'; 
-               $balance = $pending_amount; 
-               $data[$key]->balance = number_format($balance,2);
-            }
-            $penA = $pending_amount;
-            $i++;
-         } 
+            $running += $toNumber($row["debit"]) - $toNumber($row["credit"]);
+            $data[$key]->balance = number_format($running,2);
+         }
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){

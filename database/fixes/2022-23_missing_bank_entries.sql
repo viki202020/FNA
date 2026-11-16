@@ -44,7 +44,8 @@ WHERE s.voucher_no IS NULL AND s.opening = 0 AND s.status = 1
   AND s.fyear = '2022-2023' AND s.bank_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM statement x
                   WHERE x.head_id = '24' AND x.bank_id = 24
-                    AND x.opening = 0 AND x.fyear = '2022-2023');
+                    AND x.opening = 0 AND x.fyear = '2022-2023')
+ORDER BY s.id;
 
 
 -- ---------------------------- STEP 3: check the result (read-only) ---
