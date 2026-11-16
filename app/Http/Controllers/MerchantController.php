@@ -231,7 +231,7 @@ class MerchantController extends Controller{
          $head->shipping_state = $shipping_state;
          $head->shipping_pincode = $shipping_pincode;
          $head->shipping_country = $shipping_country;
-         $head->tds_status = $req->input('supp_tds_status');
+         $head->tds_status = in_array($req->input('supp_tds_status'), ['Yes', '1', 1], true) ? 1 : 0;
          $head->tds_rate = $req->input('supp_tds_rate');
          $head->merchant = Session::get('merchant_id');
          $head->created_at = date('d-m-Y H:i:s');
@@ -2093,7 +2093,7 @@ class MerchantController extends Controller{
       $head->shipping_state = $shipping_state;
       $head->shipping_pincode = $shipping_pincode;
       $head->shipping_country = $shipping_country;
-      $head->tds_status = $req->input('supp_tds_status');
+      $head->tds_status = in_array($req->input('supp_tds_status'), ['Yes', '1', 1], true) ? 1 : 0;
       $head->tds_rate = $req->input('supp_tds_rate');
       $head->balance = $req->input('supplier_opening_balance');
       $head->balance_type = $req->input('supplier_open_type');
@@ -2152,7 +2152,7 @@ class MerchantController extends Controller{
       $head->name = $input['landlord_name'];
       $head->pan = $input['landlord_pan'];
       $head->property_address = $input['property_address'];
-      $head->tds_status = $input['tds_status'];
+      $head->tds_status = in_array($input['tds_status'] ?? null, ['Yes', '1', 1], true) ? 1 : 0;
       $head->tds_rate = $input['tds_rate'];
       $head->category = $input['rent_category'];
       $head->account_type_id = 8;
