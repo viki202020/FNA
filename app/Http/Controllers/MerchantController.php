@@ -2713,112 +2713,115 @@ class MerchantController extends Controller{
       
    }
    public function closeBook(Request $request){
-      $input = $request->all();
-      $entity = Entity::where('merchant_id',Session::get('merchant_id'))->first();
+      $merchant_id = Session::get('merchant_id');
+      $entity = Entity::where('merchant_id',$merchant_id)->first();
       $year = explode("-",$entity->financial_year_end);
-      $nyear = $year[0];
-      $nstart = $nyear."-04-01";     
-      $nend = $nyear+1;
-      $nend.="-03-31";
-      $neyear = $nyear + 1;
-      $head = Head::where('status',1)->get();
-      $selected_year = $entity->financial_year;  
-      foreach ($head as $key => $value){
-         if($value->balance_type=="Credit"){
-            $head[$key]->open_bal = -$value->balance;
-         }else{
-            $head[$key]->open_bal = $value->balance;
-         }   
-         $debit_amount = "";
-         $credit_amount = "";                 
-         if($value->id==24){
-            $account_type_parent = AccountTypeParent::where('financial_statement_id',1)->get();
-            $head_arr = [];
-            foreach ($account_type_parent as $key1 => $value1) {
-               $account_type1 = AccountType::where('parent_id',$value1->id)->get();
-               foreach ($account_type1 as $key2 => $value2) {
-                  $head1 = Head::where('account_type_id',$value2->id)->where('status',1)->get();
-                  foreach ($head1 as $key3 => $value3){
-                     array_push($head_arr,$value3->id);
-                  }
-               }
-            }
-            $openstatement = Statement::select('debit','credit')
-                                 ->where("fyear",$selected_year)
-                                 ->where("opening",1)
-                                 ->where('head_id',24)
-                                 ->where('status',1)
-                                 ->first();
-            $statement = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
-                  ->where("fyear",$selected_year)
-                  ->where("opening",0)
-                  ->where('status',1)
-                  ->get();
-                  $debitAmount = $statement[0]->debitAmount;
-                  $creditAmount = $statement[0]->creditAmount;
-                  if($openstatement){
-                     $debitAmount = $debitAmount - $openstatement->debit;
-                  }  
-            $balance = $debitAmount - $creditAmount;    
-            if($balance>0){
-               $credit_amount = round($balance,2);
-            }else{
-               $debit_amount = abs(round($balance,2));
-            }           
-         }else{
-            $statement = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
-            ->where("fyear",$selected_year)
-                  ->where('status',1)
-                  ->where('head_id',$value->id)->get();               
-            $debitAmount = $statement['0']->debitAmount;
-            $creditAmount = $statement['0']->creditAmount;
-            $balance = $debitAmount - $creditAmount;   
-            if($balance>0){
-               $debit_amount = round($balance,2);
-            }else{
-               $credit_amount = abs(round($balance,2));
-            }         
-         }
-         
-         
-         
-         $addOpening = new Statement();
-         $addOpening->debit = $debit_amount;
-         $addOpening->credit = $credit_amount;
-         $addOpening->remark = "Opening Balance";
-         $addOpening->head_id = $value->id;
-         $addOpening->st_date = $nstart;
-         $addOpening->fyear = $nyear."-".$neyear;
-         $addOpening->opening = 1;
-         $addOpening->status = 1;
-         $addOpening->merchant_id = Session::get('merchant_id');
-         $addOpening->created_at = date('d-m-Y H:i:s');
-         $addOpening->created_by = Session::get('id');
-         $addOpening->save();
+      $nyear = (int)$year[0];
+      $nstart = $nyear."-04-01";
+      $nend = ($nyear + 1)."-03-31";
+      $new_year = $nyear."-".($nyear + 1);
+      $closing_year = $entity->financial_year;
+
+      // Do not create the opening balances twice.
+      $already = Statement::where('merchant_id',$merchant_id)
+                     ->where('fyear',$new_year)
+                     ->where('opening',1)
+                     ->exists();
+      if($already){
+         return response()->json([
+            'success' => false,
+            'data'    => "",
+            'message' => "Opening balances for ".$new_year." already exist, so the book was not closed again.",
+         ], 200);
       }
-      
-      $entityYear = new EntityFinancialYear;
-      $entityYear->financial_year = $entity->financial_year;
-      $entityYear->start_year = $entity->financial_year_start;
-      $entityYear->end_year = $entity->financial_year_end;
-      $entityYear->merchant_id = Session::get('merchant_id');
-      if($entityYear->save()){
-         
-         Entity::where('merchant_id',Session::get('merchant_id'))
+
+      // Balance Sheet heads carry their closing balance forward; Profit & Loss
+      // heads start again from zero and their result goes to Retained Earnings.
+      $bs_parents = AccountTypeParent::where('financial_statement_id',1)->pluck('id');
+      $pl_parents = AccountTypeParent::where('financial_statement_id',2)->pluck('id');
+      $bs_types = AccountType::whereIn('parent_id',$bs_parents)->pluck('id')->toArray();
+      $pl_types = AccountType::whereIn('parent_id',$pl_parents)->pluck('id')->toArray();
+
+      // Closing balance (debit - credit) of every head for the year being closed.
+      // The opening row of the year is included. Blank or "-" amounts count as 0.
+      $sums = DB::table('statement')
+         ->where('merchant_id',$merchant_id)
+         ->where('fyear',$closing_year)
+         ->where('status',1)
+         ->groupBy('head_id')
+         ->select('head_id', DB::raw("SUM(CAST(NULLIF(NULLIF(REPLACE(debit,',',''),'-'),'') AS DECIMAL(15,2))) AS dr"), DB::raw("SUM(CAST(NULLIF(NULLIF(REPLACE(credit,',',''),'-'),'') AS DECIMAL(15,2))) AS cr"))
+         ->get()
+         ->keyBy('head_id');
+
+      $heads = Head::where('status',1)
+                  ->where(function($query) use ($merchant_id){
+                     $query->where('merchant',$merchant_id);
+                     $query->orWhereNull('merchant');
+                  })->get();
+
+      $net = [];          // head id => closing balance, debit positive
+      $profit_loss = 0;   // loss positive, profit negative
+      foreach ($heads as $head){
+         $row = $sums->get((string)$head->id);
+         $balance = $row ? ((float)$row->dr - (float)$row->cr) : 0;
+         if(in_array($head->account_type_id,$bs_types)){
+            $net[$head->id] = $balance;
+         }else if(in_array($head->account_type_id,$pl_types)){
+            $profit_loss += $balance;
+         }
+      }
+      $retained = $heads->first(function($head) use ($bs_types){
+         return $head->name == "Retained Earnings" && in_array($head->account_type_id,$bs_types);
+      });
+      if($retained){
+         $net[$retained->id] = ($net[$retained->id] ?? 0) + $profit_loss;
+      }
+
+      DB::transaction(function() use ($net,$new_year,$nstart,$merchant_id,$entity,$nend,$nyear){
+         foreach ($net as $head_id => $balance){
+            $balance = round($balance,2);
+            if(abs($balance) < 0.005){
+               continue;
+            }
+            $addOpening = new Statement();
+            $addOpening->debit = $balance > 0 ? $balance : "";
+            $addOpening->credit = $balance < 0 ? abs($balance) : "";
+            $addOpening->remark = "Opening Balance";
+            $addOpening->head_id = $head_id;
+            $addOpening->st_date = $nstart;
+            $addOpening->fyear = $new_year;
+            $addOpening->opening = 1;
+            $addOpening->status = 1;
+            $addOpening->merchant_id = $merchant_id;
+            $addOpening->created_at = date('Y-m-d H:i:s');
+            $addOpening->created_by = Session::get('id');
+            $addOpening->save();
+         }
+         // Keep a record of the year that was closed (once).
+         $recorded = EntityFinancialYear::where('merchant_id',$merchant_id)
+                        ->where('financial_year',$entity->financial_year)
+                        ->exists();
+         if(!$recorded){
+            $entityYear = new EntityFinancialYear;
+            $entityYear->financial_year = $entity->financial_year;
+            $entityYear->start_year = $entity->financial_year_start;
+            $entityYear->end_year = $entity->financial_year_end;
+            $entityYear->merchant_id = $merchant_id;
+            $entityYear->save();
+         }
+         Entity::where('merchant_id',$merchant_id)
                ->update([
-                 'financial_year' => $nyear."-".$neyear,
-                 'financial_year_start' => $nstart, 
+                 'financial_year' => $new_year,
+                 'financial_year_start' => $nstart,
                  'financial_year_end' => $nend
                ]);
-         
-      }
+      });
       $response = [
          'success' => true,
          'data'    => "",
          'message' => "Book Closed Successfully.",
       ];
       return response()->json($response, 200);
-      
    }
    public function manageBook(Request $request){  
       $entity = Entity::where('merchant_id',Session::get('merchant_id'))->first(); 

@@ -82,7 +82,7 @@
                $("#closeBookModal").modal('toggle');
                location.reload();
             }else{
-               alert("Something went wrong")
+               alert(res.message ? res.message : "Something went wrong")
             }
          }
       });
