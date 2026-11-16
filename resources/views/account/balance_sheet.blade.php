@@ -15,7 +15,9 @@
                @endforeach
 
             @if($entity)
-            <option value="{{$entity->financial_year}}" @if($selected_year==$entity->financial_year) selected @endif> {{$entity->financial_year}}</option>
+            @if(!collect($entity_financial_year)->contains('financial_year',$entity->financial_year))
+               <option value="{{$entity->financial_year}}" @if($selected_year==$entity->financial_year) selected @endif> {{$entity->financial_year}}</option>
+            @endif
             @endif
          </select>
          <p style="text-align: center;font-size: 26px;"> @if($entity) {{$entity->name}} @endif</p>
