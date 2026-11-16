@@ -660,7 +660,7 @@ class MerchantController extends Controller{
                   ->orderBy("statement.id","asc")
                   ->get(['statement.*', 'head.name']);
          foreach ($data as $key => $row){
-            $statement = DB::select(DB::raw("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where fyear='".$selected_year."' and head_id='".$hid."' and merchant_id='".Session::get('merchant_id')."' and status=1 and opening=0 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE('".$row['st_date']."', '%d-%m-%Y')"));
+            $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where fyear='".$selected_year."' and head_id='".$hid."' and merchant_id='".Session::get('merchant_id')."' and status=1 and opening=0 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE('".$row['st_date']."', '%d-%m-%Y')");
             $pending_amount1 = $statement['0']->debitAmount - $statement['0']->creditAmount;
             if($i==1){
 
@@ -2437,7 +2437,7 @@ class MerchantController extends Controller{
                   ->get(['statement.*', 'head.name']);
       foreach ($data as $key => $row){
          $data[$key]->st_date = date('d-m-Y',strtotime($row['st_date']));
-         $statement = DB::select(DB::raw("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where merchant_id='".Session::get('merchant_id')."' and status=1 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE('".$row['st_date']."', '%d-%m-%Y') and id!='".$row['id']."' and head_id='".$row['head_id']."' and fyear='".$selected_year."'"));
+         $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where merchant_id='".Session::get('merchant_id')."' and status=1 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE('".$row['st_date']."', '%d-%m-%Y') and id!='".$row['id']."' and head_id='".$row['head_id']."' and fyear='".$selected_year."'");
         $pending_amount1 = $statement['0']->debitAmount - $statement['0']->creditAmount;
          if($i==1){
 
@@ -2673,7 +2673,7 @@ class MerchantController extends Controller{
          
          if($from!=""){
             $form_date = date('d-m-Y',strtotime($from));
-            $statement = DB::select(DB::raw("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where status=1 and opening=0 and fyear='".$selected_year."' and merchant_id='".Session::get('merchant_id')."' and head_id='".$value->id."' and STR_TO_DATE(st_date, '%d-%m-%Y') >= STR_TO_DATE('".$form_date."', '%d-%m-%Y')"));
+            $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where status=1 and opening=0 and fyear='".$selected_year."' and merchant_id='".Session::get('merchant_id')."' and head_id='".$value->id."' and STR_TO_DATE(st_date, '%d-%m-%Y') >= STR_TO_DATE('".$form_date."', '%d-%m-%Y')");
          }else{
             $statement = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
             ->where('opening',0)
