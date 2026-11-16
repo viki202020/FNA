@@ -15,7 +15,7 @@
 --   1. Run STEP 1 only (select it and press F9). It changes nothing.
 --      Expect: rows_missing = 140, total_debit = 6627865.50,
 --              total_credit = 4902290.08
---   2. Run STEP 2 (inserts 140 rows). It does nothing if the bank
+--   2. Run STEP 2 (inserts 140 rows and COMMITs). It does nothing if the bank
 --      entries already exist, so running it twice is safe.
 --   3. Run STEP 3 and compare with the expected values.
 --
@@ -46,6 +46,11 @@ WHERE s.voucher_no IS NULL AND s.opening = 0 AND s.status = 1
                   WHERE x.head_id = '24' AND x.bank_id = 24
                     AND x.opening = 0 AND x.fyear = '2022-2023')
 ORDER BY s.id;
+
+-- Save the new rows so the web app can see them. (If the connection has
+-- autocommit switched off, e.g. after importing a phpMyAdmin dump, the rows
+-- stay invisible to the app until this runs.)
+COMMIT;
 
 
 -- ---------------------------- STEP 3: check the result (read-only) ---
