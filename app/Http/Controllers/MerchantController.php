@@ -2304,6 +2304,10 @@ class MerchantController extends Controller{
       }      
       if($year!="" && $year!=null){
          $selected_year = $year;
+         $chosen_year = EntityFinancialYear::where('merchant_id',Session::get('merchant_id'))->where('financial_year',$year)->first();
+         if($chosen_year){
+            $financial_year_end = date('d-m-Y',strtotime($chosen_year->end_year));
+         }
       }
       $account_type_parent = AccountTypeParent::where('financial_statement_id',1)
       ->orderBy('sequence')

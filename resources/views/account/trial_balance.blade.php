@@ -17,7 +17,12 @@
          </select>
          <p style="text-align: center;font-size: 26px;">{{$entity->name}}</p>
          <p style="text-align: center;font-size: 12px;">({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}})</p>
-         <h5 class="h1 mb-2" style="text-align: center;">Trial Balance for the period  {{date('d-m-Y',strtotime($entity->financial_year_start))}} to {{date('d-m-Y',strtotime($entity->financial_year_end))}}</h5>
+         <h5 class="h1 mb-2" style="text-align: center;">@php
+            $chosen_year = collect($entity_financial_year)->firstWhere('financial_year',$selected_year);
+            $period_start = $chosen_year ? $chosen_year->start_year : $entity->financial_year_start;
+            $period_end = $chosen_year ? $chosen_year->end_year : $entity->financial_year_end;
+         @endphp
+         Trial Balance for the period  {{date('d-m-Y',strtotime($period_start))}} to {{date('d-m-Y',strtotime($period_end))}}</h5>
          @endif
          <?php date_default_timezone_set("Asia/Kolkata");   //India time (GMT+5:30)?>
          <p style="text-align: center;">(Generated on {{date('D-M-Y G:i:s')}})</p>

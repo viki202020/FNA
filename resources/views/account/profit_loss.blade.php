@@ -16,7 +16,7 @@
          </select>
          <p style="text-align: center;font-size: 26px;">{{$entity->name}}</p>
          <p style="text-align: center;font-size: 12px;">({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}})</p>
-         <h2 class="h1 mb-2" style="text-align: center;">Profit & Loss for the year {{$entity->financial_year}}</h2>            
+         <h2 class="h1 mb-2" style="text-align: center;">Profit & Loss for the year {{$selected_year}}</h2>            
          <div class="row">
             <div class="col-md-12 mb-3">                  
                @foreach($account_type_parents as $account_type_parent)
@@ -34,7 +34,7 @@
                @endforeach                     
             </div>
             @if($pl<0) <p style="color: red;"> @else <p style="color: green;"> @endif
-            @if($pl<0) Loss @else Profit @endif for the year {{$entity->financial_year}} taken to Balance Sheet <span style="float: right;">@if($pl<0) {{abs($pl)}} DR @else {{$pl}} Cr @endif</span></p>
+            @if($pl<0) Loss @else Profit @endif for the year {{$selected_year}} taken to Balance Sheet <span style="float: right;">@if($pl<0) {{abs($pl)}} DR @else {{$pl}} Cr @endif</span></p>
          </div>
       </div>      
    </div>
