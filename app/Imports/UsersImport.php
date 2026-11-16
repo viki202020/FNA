@@ -333,7 +333,10 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
          }
          $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
          $fyear = $entity->financial_year;
-         if(!empty($head_id)){
+         // The bank's own entry is created for EVERY line, exactly as the bank shows it
+         // (money in = debit on the bank, money out = credit), whether or not a rule matched.
+         // Categorising later only chooses the account for the other, reversed entry.
+         if(!empty($bank)){
             $statement = new Statement;
             $statement->head_id = $bank;
             $statement->debit = $credit_amount;
