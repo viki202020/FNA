@@ -681,7 +681,11 @@ class MerchantController extends Controller{
          ->make(true);
       }  
 
-      return view('account.statement',["bank"=>$bank_open,"bankname"=>$bankname]);
+      $entity_financial_year = EntityFinancialYear::where('merchant_id',Session::get('merchant_id'))
+                                 ->where('status',1)
+                                 ->orderBy('id')
+                                 ->get();
+      return view('account.statement',["bank"=>$bank_open,"bankname"=>$bankname,"selected_year"=>$selected_year,"selected_bank"=>$hid,"entity_financial_year"=>$entity_financial_year,"entity"=>$entity]);
    }
    public function uncategorizedData(Request $request){
       if($request->ajax()){      

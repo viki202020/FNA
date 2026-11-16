@@ -17,11 +17,21 @@
       <button class="btn btn-info" onclick="history.back()">Back</button>
       <div class="card card-body border-0 shadow mb-4 mt-4" style="overflow: scroll;">
          <h2 class="mb-4" style="text-align: center;">Bank Statement</h2>
-         <select id="bank">
-            @foreach($bankname as $bank1)
-            <option value="{{$bank1->id}}">{{$bank1->name}}</option>
-            @endforeach
-         </select>
+         <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <select id="bank" class="form-control" style="max-width:380px;">
+               @foreach($bankname as $bank1)
+               <option value="{{$bank1->id}}" @if($selected_bank==$bank1->id) selected @endif>{{$bank1->name}}</option>
+               @endforeach
+            </select>
+            <select id="financial_year" class="form-control" style="max-width:160px;">
+               @foreach($entity_financial_year as $fy)
+               <option value="{{$fy->financial_year}}" @if($selected_year==$fy->financial_year) selected @endif>{{$fy->financial_year}}</option>
+               @endforeach
+               @if(!$entity_financial_year->contains('financial_year',$entity->financial_year))
+               <option value="{{$entity->financial_year}}" @if($selected_year==$entity->financial_year) selected @endif>{{$entity->financial_year}}</option>
+               @endif
+            </select>
+         </div>
          <p style="text-align:right;">Opening Balance : {{$bank}}</p>
          <table class="table table-bordered yajra-datatable">
             <thead>
@@ -55,7 +65,7 @@
       var table = $('.yajra-datatable').DataTable({
           processing: true,
           serverSide: true,
-          ajax: "{{ route('statement.list') }}",
+          ajax: "{{ url('merchant/statement/'.$selected_year.'/'.$selected_bank) }}",
           columns: [
               {data: 'DT_RowIndex', name: 'DT_RowIndex'},
               {data: 'st_date', name: 'st_date'},
@@ -76,8 +86,10 @@
       
     });
 
-   $("#bank").change(function(){
-      window.location = "statement/"+$(this).val();
-   });
+   function openStatement(){
+      window.location = "{{ url('merchant/statement') }}/" + $("#financial_year").val() + "/" + $("#bank").val();
+   }
+   $("#bank").change(openStatement);
+   $("#financial_year").change(openStatement);
 </script>
 @endpush
