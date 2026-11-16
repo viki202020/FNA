@@ -641,7 +641,7 @@ class MerchantController extends Controller{
          $i = 1;
          $dr = "";
          $cr = "";
-         $penA = "";
+         $penA = 0;
          $pending_amount = 0;
 
          if($bank){
@@ -666,14 +666,14 @@ class MerchantController extends Controller{
 
                if(!empty($row["credit"]) && $row["credit"]!="-"){
                   if($bank){
-                     $pending_amount = $bank->debit + $row["credit"];
+                     $pending_amount = (float)$bank->debit + (float)$row["credit"];
                   }else{
                      $pending_amount = $row["credit"];
                   }
                   
                }else if(!empty($row["debit"]) && $row["debit"]!="-"){
                   if($bank){
-                     $pending_amount = $bank->debit - $row["debit"];
+                     $pending_amount = (float)$bank->debit - (float)$row["debit"];
                   }else{
                      $pending_amount = $row["debit"];
                   }
@@ -682,7 +682,7 @@ class MerchantController extends Controller{
                
             }else{
                if(!empty($row["credit"]) && $row["credit"]!="-"){
-                  $pending_amount = $penA + $row["credit"];
+                  $pending_amount = $penA + (float)$row["credit"];
                   // if(!empty($dr)){
                   //    $pending_amount = $penA + $dr;
                   // }else if(!empty($cr)){
@@ -691,7 +691,7 @@ class MerchantController extends Controller{
                   $dr = $row["credit"];
                   $cr = "";
                }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-                  $pending_amount = $penA - $row["debit"];
+                  $pending_amount = $penA - (float)$row["debit"];
                   // if(!empty($dr)){
                   //    $pending_amount = $penA + $dr;
                   // }else if(!empty($cr)){
@@ -2418,7 +2418,7 @@ class MerchantController extends Controller{
       $i = 1;
       $dr = "";
       $cr = "";
-      $penA = "";
+      $penA = 0;
       $open = "0";
       $pending_amount = 0;
       if($head){
@@ -2444,30 +2444,30 @@ class MerchantController extends Controller{
             // if($head && $head->balance_type!=""){
             //    if($head->balance_type=="Credit"){
             //       if(!empty($row["credit"]) && $row["credit"]!="-"){
-            //          $pending_amount = $pending_amount + $row["credit"];
+            //          $pending_amount = $pending_amount + (float)$row["credit"];
             //       }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-            //          $pending_amount = $pending_amount - $row["debit"];
+            //          $pending_amount = $pending_amount - (float)$row["debit"];
             //       }
             //    }else{
             //       if(!empty($row["credit"]) && $row["credit"]!="-"){
-            //          $pending_amount = $pending_amount - $row["credit"];
+            //          $pending_amount = $pending_amount - (float)$row["credit"];
             //       }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-            //          $pending_amount = $pending_amount + $row["debit"];
+            //          $pending_amount = $pending_amount + (float)$row["debit"];
             //       }
             //    }
             // }else{
                if($head->parent_id=="1" || $head->parent_id=="2"){
                   if(!empty($row["credit"]) && $row["credit"]!="-"){
-                     $pending_amount = $pending_amount1 - $row["credit"];
+                     $pending_amount = $pending_amount1 - (float)$row["credit"];
                   }else if(!empty($row["debit"]) && $row["debit"]!="-"){
 
-                     $pending_amount = $pending_amount1 + $row["debit"];
+                     $pending_amount = $pending_amount1 + (float)$row["debit"];
                   }
                }else if($head->parent_id=="4" || $head->parent_id=="3"){
                   if(!empty($row["credit"]) && $row["credit"]!="-"){
-                     $pending_amount = $pending_amount1 + $row["credit"];
+                     $pending_amount = $pending_amount1 + (float)$row["credit"];
                   }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-                     $pending_amount = $pending_amount1 - $row["debit"];
+                     $pending_amount = $pending_amount1 - (float)$row["debit"];
                   }
                }
                
@@ -2475,15 +2475,15 @@ class MerchantController extends Controller{
          }else{
             if($head->parent_id=="1" || $head->parent_id=="2"){
                if(!empty($row["credit"]) && $row["credit"]!="-"){
-                  $pending_amount = $penA - $row["credit"];
+                  $pending_amount = $penA - (float)$row["credit"];
                }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-                  $pending_amount = $penA + $row["debit"];
+                  $pending_amount = $penA + (float)$row["debit"];
                }  
             }else if($head->parent_id=="4" || $head->parent_id=="3"){
                if(!empty($row["credit"]) && $row["credit"]!="-"){
-                  $pending_amount = $penA + $row["credit"];
+                  $pending_amount = $penA + (float)$row["credit"];
                }else if(!empty($row["debit"]) && $row["debit"]!="-"){
-                  $pending_amount = $penA - $row["debit"];
+                  $pending_amount = $penA - (float)$row["debit"];
                }
             }
          }
