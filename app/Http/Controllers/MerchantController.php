@@ -648,7 +648,7 @@ class MerchantController extends Controller{
             //$pending_amount = $bank->balance;
          }    
 
-         $data = Statement::leftjoin('head1', 'statement.head_id', '=', 'head.id')
+         $data = Statement::leftjoin('head', 'statement.head_id', '=', 'head.id')
                   ->where("merchant_id",Session::get('merchant_id'))
                   ->where("statement.status",1)
                   ->where('head_id',$hid)
