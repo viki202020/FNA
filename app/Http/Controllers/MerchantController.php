@@ -1306,9 +1306,13 @@ class MerchantController extends Controller{
             }         
          }
          $statement = Statement::find($value->id);
+         $was_uncategorised = ($statement->status == 0);
          $statement->head_id = $head_id;
          $statement->status = $status; 
          $statement->save();         
+         if($was_uncategorised && $status == 1 && !empty($head_id)){
+            $this->addBankSideEntry($statement);
+         }
       }
       echo 1;
    }
@@ -1317,8 +1321,12 @@ class MerchantController extends Controller{
       // $validated = $req->validate([
       //    'select_rule' => 'required'
       // ]);
+      // Only lines that are still uncategorised: never touch lines that already have
+      // an account, the bank-side entries or the opening balances.
       $row = Statement::select('statement.*')
                ->where("merchant_id",Session::get('merchant_id'))
+               ->where("statement.status",0)
+               ->where("statement.opening",0)
                ->get();
       foreach ($row as $key => $value) {
          $debit_amount = "";$credit_amount = "";$status = 0;$head_id = "";
@@ -1903,9 +1911,13 @@ class MerchantController extends Controller{
                }
                if(!empty($head_id)){
                   $statement = Statement::find($value->id);
+                  $was_uncategorised = ($statement->status == 0);
                   $statement->head_id = $head_id;
                   $statement->status = $status; 
-                  $statement->save(); 
+                  $statement->save();
+                  if($was_uncategorised && $status == 1 && !empty($head_id)){
+                     $this->addBankSideEntry($statement);
+                  } 
                   continue;
                }
             }
@@ -1915,6 +1927,27 @@ class MerchantController extends Controller{
                  
       }
       echo 1;
+   }
+   // Creates the matching entry on the bank account for a bank line that has just
+   // been categorised (money received is a debit on the bank, money paid out a credit).
+   // The entry carries the same financial year, so reports and the Trial Balance see it.
+   private function addBankSideEntry($statement){
+      if(empty($statement->bank_id) || (string)$statement->head_id === (string)$statement->bank_id){
+         return;
+      }
+      $entry = new Statement;
+      $entry->head_id = $statement->bank_id;
+      $entry->debit = $statement->credit;
+      $entry->credit = $statement->debit;
+      $entry->bank_id = $statement->bank_id;
+      $entry->fyear = $statement->fyear;
+      $entry->remark = $statement->remark;
+      $entry->st_date = date('Y-m-d',strtotime($statement->st_date));
+      $entry->status = 1;
+      $entry->merchant_id = $statement->merchant_id;
+      $entry->created_at = date('Y-m-d H:i:s');
+      $entry->created_by = Session::get('id');
+      $entry->save();
    }
    public function assignHeadManually(Request $req){
       $input = $req->all();
@@ -1935,25 +1968,15 @@ class MerchantController extends Controller{
       $select_head = $input['select_head'];
       $manually_id = $input['manually_id'];
       $statement = Statement::find($manually_id);
+      $was_uncategorised = ($statement->status == 0);
       $statement->head_id = $select_head;
       $statement->status = 1;     
       $statement->updated_at = date('d-m-Y H:i:s');
       $statement->updated_by = Session::get('id');
       if($statement->save()){
-         $credit_amount = $statement->credit;
-         $debit_amount = $statement->debit;
-         $addstatement = new Statement;
-         $addstatement->head_id = $statement->bank_id;
-         $addstatement->debit = $credit_amount;
-         $addstatement->credit = $debit_amount;
-         $addstatement->bank_id = $statement->bank_id;
-         $addstatement->remark = $statement->remark;
-         $addstatement->st_date = date('Y-m-d',strtotime($statement->st_date));
-         $addstatement->status = 1;
-         $addstatement->merchant_id = Session::get('id');
-         $addstatement->created_at = date('d-m-Y H:i:s');
-         $addstatement->created_by = Session::get('id');
-         $addstatement->save();
+         if($was_uncategorised){
+            $this->addBankSideEntry($statement);
+         }
          echo 1;
       }
       
@@ -2680,7 +2703,18 @@ class MerchantController extends Controller{
    public function assignBulkHeadManually(Request $request){
       $input = $request->all();
       $id = explode(",",$input['row_id']);
-      $update = Statement::whereIn('id', $id)->update(['head_id' => $input['select_bulk_head'],'status'=>1]);
+      $update = false;
+      foreach (Statement::whereIn('id', $id)->get() as $line){
+         $was_uncategorised = ($line->status == 0);
+         $line->head_id = $input['select_bulk_head'];
+         $line->status = 1;
+         if($line->save()){
+            $update = true;
+            if($was_uncategorised){
+               $this->addBankSideEntry($line);
+            }
+         }
+      }
       if($update){
          $response = [
                'success' => true,
