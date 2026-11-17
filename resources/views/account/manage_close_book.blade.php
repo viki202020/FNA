@@ -19,10 +19,23 @@
                <tr>
                   <td>{{$entity->name}}</td>
                   <td>{{$entity->financial_year}}</td>
-                  <td> @if($button_status==1)<button class="btn btn-info close_book">Close Books</button>@endif</td>
+                  <td> @if($button_status==1 && count($blockers)==0)<button class="btn btn-info close_book">Close Books</button>@endif</td>
                </tr>
             </tbody>
         </table>
+        @if(count($blockers))
+           <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid #c0392b;background:#fdecea;color:#922b21;">
+              <strong>This year cannot be closed yet:</strong>
+              <ul style="margin:4px 0 0 18px">
+                 @foreach($blockers as $b)<li>{{ $b['message'] }}</li>@endforeach
+              </ul>
+              <a href="{{ url('merchant/uncategorized-data') }}">Open Uncategorized Data</a>
+           </div>
+        @elseif($button_status==1)
+           <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid #27ae60;background:#eafaf1;color:#1e8449;">
+              Nothing is uncategorised. The year can be closed.
+           </div>
+        @endif
     </div>
 </div>
 <div class="modal fade" id="closeBookModal" tabindex="-1" role="dialog" aria-labelledby="modal-form-signup" aria-hidden="true">

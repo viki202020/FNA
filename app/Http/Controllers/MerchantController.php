@@ -2793,6 +2793,16 @@ class MerchantController extends Controller{
          ], 200);
       }
 
+      // A year cannot be closed while anything in it is still uncategorised.
+      $blockers = FinancialYears::closeBlockers($closing_year);
+      if(count($blockers)){
+         return response()->json([
+            'success' => false,
+            'data'    => "",
+            'message' => "The book for ".$closing_year." cannot be closed yet:\n- ".implode("\n- ", array_column($blockers,'message')),
+         ], 200);
+      }
+
       // Balance Sheet heads carry their closing balance forward; Profit & Loss
       // heads start again from zero and their result goes to Retained Earnings.
       $bs_parents = AccountTypeParent::where('financial_statement_id',1)->pluck('id');
@@ -2887,7 +2897,7 @@ class MerchantController extends Controller{
       if(strtotime($entity->financial_year_end)<strtotime(date('Y-m-d'))){
          $button_status = "1";
       }   
-      return view('account.manage_close_book',["entity"=>$entity,"button_status"=>$button_status]);
+      return view('account.manage_close_book',["entity"=>$entity,"button_status"=>$button_status,"blockers"=>FinancialYears::closeBlockers($entity->financial_year)]);
    }
 
 }

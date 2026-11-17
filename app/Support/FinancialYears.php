@@ -97,6 +97,34 @@ class FinancialYears
         }));
     }
 
+    /**
+     * Reasons why a year cannot be closed yet. Empty list = it can be closed.
+     * A year must not be closed while any entry in it is still uncategorised,
+     * because the next year's opening balances are taken from what is posted.
+     */
+    public static function closeBlockers($financialYear)
+    {
+        $merchant = self::merchantId();
+        $blockers = [];
+        $uncategorised = DB::table('statement')
+            ->where('merchant_id', $merchant)->where('fyear', $financialYear)
+            ->where('status', 0)->where('opening', 0)->count();
+        if ($uncategorised > 0) {
+            $blockers[] = ['count' => $uncategorised,
+                'message' => $uncategorised . " uncategorised entr" . ($uncategorised == 1 ? "y" : "ies") . " in " . $financialYear
+                           . ". Give each one an account first (Uncategorized Data page)."];
+        }
+        $orphans = DB::table('statement')
+            ->where('merchant_id', $merchant)->whereNull('fyear')
+            ->where('status', 0)->where('opening', 0)->count();
+        if ($orphans > 0) {
+            $blockers[] = ['count' => $orphans,
+                'message' => $orphans . " uncategorised entr" . ($orphans == 1 ? "y has no financial year at all, so it" : "ies have no financial year at all, so they")
+                           . " would be left out of every report. Fix or categorise " . ($orphans == 1 ? "it" : "them") . " first."];
+        }
+        return $blockers;
+    }
+
     public static function message($financialYear)
     {
         return "Financial year " . $financialYear . " is closed, so its entries cannot be changed. "
