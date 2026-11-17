@@ -447,6 +447,7 @@ class MerchantController extends Controller{
                'supplier' => $supplier[$key],
                'rule_for'=> $rule_for[$key],
                'rule_in'=> $rule_in[$key],
+               'status' => $req->input('rule_status', 1) == 0 ? 0 : 1,
                'updated_at' => date('d-m-Y H:i:s'),
                'updated_by' => Session::get('id')
             ]);
@@ -466,6 +467,7 @@ class MerchantController extends Controller{
                'rule_name' => $rule_name[$key],
                'rule_for'=> $rule_for[$key],
                'rule_in'=> $rule_in[$key],
+               'status' => $req->input('rule_status', 1) == 0 ? 0 : 1,
                'category' => $category[$key],
                'customer' => $customer[$key],
                'supplier' => $supplier[$key],

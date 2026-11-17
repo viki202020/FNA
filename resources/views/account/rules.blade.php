@@ -85,6 +85,13 @@
                <input type="hidden" name="head_id" id="head_id">
             </div>
             <div class="mt-3">
+               <label for="rule_status"><strong>Rule is</strong></label>
+               <select name="rule_status" id="rule_status" class="form-control" style="display:inline-block;width:auto;margin-left:8px;">
+                  <option value="1">Active</option>
+                  <option value="0">Switched off</option>
+               </select>
+            </div>
+            <div class="mt-3">
                <button class="btn btn-gray-800 mt-2 animate-up-2" type="submit">Save all</button>
                @if(session('success_msg'))
                   <span style="color:green">{{session('success_msg')}}</span>
@@ -268,6 +275,8 @@
       $("#supplier").val(supplier);
       $("#rule_for").val(rule_for);
       $("#rule_in").val(rule_in);
+      if(rule_in=="" || rule_in==null){ $("#rule_in").val("ANY"); }
+      $("#rule_status").val($(this).attr('data-status')=="0" ? "0" : "1");
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       setTimeout(function () {
