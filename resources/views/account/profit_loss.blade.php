@@ -25,7 +25,7 @@
                         <li>{{$child->name}} <span style="float: right;">{{$child->head_total}}</span>
                            <ul>
                               @foreach($child->head as $head)
-                                 <a href="ledger-by-head/{{$head->id}}" style="color:#0000EE"><li>{{$head->name}} <span style="float: right;margin-right: 20%;">{{$head->amount}}</span></li></a>
+                                 <a href="{{URL('/merchant/ledger-by-head')}}/{{$head->id}}/{{$selected_year}}" style="color:#0000EE"><li>{{$head->name}} <span style="float: right;margin-right: 20%;">{{$head->amount}}</span></li></a>
                               @endforeach
                            </ul>
                         </li>

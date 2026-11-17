@@ -15,6 +15,16 @@
          <h2 class="h3 mb-2" style="
     text-align: center;
 "> Ledger for : {{$name}}</h2> 
+         <div style="margin:6px 0 10px 0;">
+            <label for="ledger_year"><strong>Financial year</strong></label>
+            <select id="ledger_year" class="form-select" style="width:auto;display:inline-block;margin-left:8px;"
+                    onchange="window.location='{{ url('/merchant/ledger-by-head/'.$head_id) }}/'+this.value">
+               @foreach($year_options as $y)
+                  <option value="{{ $y }}" @if($y==$selected_year) selected @endif>{{ $y }}@if(!\App\Support\FinancialYears::isOpen($y)) (closed)@endif</option>
+               @endforeach
+            </select>
+         </div>
+         @include('account._year_controls_banner')
 @if($open!=0)
             <p style="
        font-size: large;

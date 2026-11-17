@@ -2586,7 +2586,11 @@ class MerchantController extends Controller{
          $aa = json_decode('{"st_date":"31-03-2023","voucher_no":"","remark":"'.$rmk.'","debit":"'.$dt.'","credit":"'.$ct.'","balance":"'.$balance.'"}');
          array_push($data,$aa);
       }      
-      return view('account.ledger_by_head',["ledgers"=>$data,"open"=>$open,"name"=>$head->name]);
+      $efy = EntityFinancialYear::where('merchant_id',Session::get('merchant_id'))->where('status',1)->pluck('financial_year')->all();
+      $year_options = FinancialYears::options($efy, $selected_year, true);
+      $year_is_closed = !FinancialYears::isOpen($selected_year);
+      $year_is_reopened = FinancialYears::isReopened($selected_year);
+      return view('account.ledger_by_head',["ledgers"=>$data,"open"=>$open,"name"=>$head->name,"head_id"=>$id,"year_options"=>$year_options,"selected_year"=>$selected_year,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened]);
    }
    public function profitLoss(Request $request,$year = null){
       $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
