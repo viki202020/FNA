@@ -6,6 +6,15 @@
 @endsection
 @section('contentbody')
 <style>
+    .ledger-page, .ledger-page table, .ledger-page td, .ledger-page th { color:#1f2937; }
+    .ledger-page table.dataTable thead th { background:#111827; color:#fff !important; font-size:13px; font-weight:600; padding:10px 12px; border-bottom:0; }
+    .ledger-page table.dataTable tbody td { font-size:15px; padding:9px 12px; color:#111827; background:#fff; }
+    .ledger-page table.dataTable tbody tr:nth-child(even) td { background:#f6f8fb; }
+    .ledger-page table.dataTable tbody tr:hover td { background:#e8f0fe; }
+    .ledger-page td.num { text-align:right; font-variant-numeric:tabular-nums; font-weight:500; }
+    .ledger-page .dataTables_wrapper, .ledger-page .dataTables_info, .ledger-page label { color:#111827; font-size:14px; }
+    a.ledger-link { color:#0b5ed7; font-weight:600; text-decoration:none; }
+    a.ledger-link:hover { text-decoration:underline; }
     table td {
         word-break: break-word;
         vertical-align: top;
@@ -14,17 +23,17 @@
 </style>
 <div class="row">
    <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4" style="overflow: scroll;">
+      <div class="card card-body border-0 shadow mb-4 mt-4 ledger-page" style="overflow: auto;">
          <h2 class="mb-4">Ledgers</h2>         
          <div class="row">
             <div class="col-3 col-xl-3">
                <input type="checkbox" id="empty_head"> Show Empty Heads
             </div>
             <div class="col-3 col-xl-3">
-               <select class="form-control" id="date">
-                  <!--<option value="1">Since Start</option>-->
-                  <option value="2">Current Year</option>
-                  <!--<option value="3">Current Month</option>-->
+               <select class="form-select" id="date" aria-label="Financial year">
+                  @foreach($year_options as $y)
+                     <option value="{{ $y }}" @if($y==$selected_year) selected @endif>{{ $y }}@if(!\App\Support\FinancialYears::isOpen($y)) (closed)@endif</option>
+                  @endforeach
                </select>
             </div>            
          </div>
@@ -32,16 +41,15 @@
          <table class="table table-bordered yajra-datatable">
             <thead>
                <tr>
-                  <th>Acct_head_name</th>
-                  <th>#of entries</th>
-                  <th>Amount</th>
+                  <th>Account head</th>
+                  <th style="text-align:right">Entries</th>
+                  <th style="text-align:right">Debit</th>
+                  <th style="text-align:right">Credit</th>
+                  <th style="text-align:right">Balance</th>
                   <th>Dr/Cr</th>
                </tr>
             </thead>
-            <tbody style="
-    background-color: #010b37;
-    color: #146005;
-">
+            <tbody>
             </tbody>
          </table>
          <table class="table table-bordered empty_head_list" style="display:none">
@@ -97,15 +105,17 @@
           processing: true,
           serverSide: true,
           "iDisplayLength": 100,
-          ajax: "{{ route('ledgers.list') }}",
+          ajax: { url: "{{ route('ledgers.list') }}", data: function(d){ d.year = $('#date').val(); } },
           columns: [
-              {data: 'hname', name: 'hname'},
-              {data: 'cnt', name: 'cnt'},
-              {data: 'debitAmount', name: 'debitAmount'},
-              {data: 'amount_type', name: 'amount_type'},
-              
+              {data: 'hname', name: 'head.name'},
+              {data: 'cnt', name: 'cnt', className: 'num'},
+              {data: 'debit_fmt', name: 'debitTotal', className: 'num', orderable:false, searchable:false},
+              {data: 'credit_fmt', name: 'creditTotal', className: 'num', orderable:false, searchable:false},
+              {data: 'balance_fmt', name: 'net', className: 'num', orderable:false, searchable:false},
+              {data: 'amount_type', name: 'amount_type', orderable:false, searchable:false},
           ]
-      });      
+      });
+      $('#date').on('change', function(){ table.ajax.reload(); $("#empty_head").prop('checked', false); $(".empty_head_list").hide(); });
    });
    $("#empty_head").click(function(){
       if($(this).prop('checked')==true){
@@ -140,7 +150,7 @@
    });
    $(document).on("click",".view_all",function(){
       let id = $(this).attr("data-id");
-      window.location = "ledger-by-head/"+id;
+      window.location = "{{ url('/merchant/ledger-by-head') }}/"+id+"/"+encodeURIComponent($("#date").val());
       // $.ajax({
       //    headers: {
       //       'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

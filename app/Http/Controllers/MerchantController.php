@@ -1984,25 +1984,31 @@ class MerchantController extends Controller{
       
    }
    public function ledgers(Request $request){
+      $selected_year = $request->input('year') ?: FinancialYears::current();
       if($request->ajax()){
          $data = Statement::leftjoin('head', 'statement.head_id', '=', 'head.id')
-                           ->select(DB::raw("sum(debit-credit) as debitAmount,count(*) as cnt,head_id,head.name,(CASE WHEN sum(debit-credit)>'0' THEN 'Dr'  ELSE 'Cr' END) as amount_type"))
-                           ->where("merchant_id",Session::get('merchant_id')) 
-                           ->where("statement.status",1)
+                           ->select(DB::raw("ROUND(sum(debit+0),2) as debitTotal,ROUND(sum(credit+0),2) as creditTotal,ROUND(sum(debit+0)-sum(credit+0),2) as net,count(*) as cnt,head_id,head.name"))
+                           ->where("merchant_id",Session::get('merchant_id'))
+                           ->effective()
+                           ->where("statement.fyear",$selected_year)
                            ->groupBy('statement.head_id')
                            ->orderBy('head.name')
-                           ->get();    
+                           ->get();
          return Datatables::of($data)
          ->addIndexColumn()
-         ->addColumn('hname', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="btn btn-success btn-sm view_all" data-id="'.$row->head_id.'">'.$row->name.'</a>';
-               return $actionBtn;
-            }) 
-         ->rawColumns(['hname'])    
+         ->addColumn('hname', function($row) use ($selected_year){
+               return '<a href="javascript:void(0)" class="ledger-link view_all" data-id="'.$row->head_id.'">'.e($row->name).'</a>';
+            })
+         ->addColumn('debit_fmt', function($row){ return $row->debitTotal > 0 ? number_format($row->debitTotal,2) : ''; })
+         ->addColumn('credit_fmt', function($row){ return $row->creditTotal > 0 ? number_format($row->creditTotal,2) : ''; })
+         ->addColumn('balance_fmt', function($row){ return number_format(abs($row->net),2); })
+         ->addColumn('amount_type', function($row){ return $row->net > 0 ? 'Dr' : ($row->net < 0 ? 'Cr' : ''); })
+         ->rawColumns(['hname'])
          ->make(true);
       }
-      
-      return view('account.ledger');
+      $efy = EntityFinancialYear::where('merchant_id',Session::get('merchant_id'))->where('status',1)->pluck('financial_year')->all();
+      $year_options = FinancialYears::options($efy, $selected_year, true);
+      return view('account.ledger',["year_options"=>$year_options,"selected_year"=>$selected_year]);
    }
    public function ledgerByHead(Request $request){
       $id = $request->input('id');     
@@ -2583,7 +2589,11 @@ class MerchantController extends Controller{
          }
          $data =[];
         
-         $aa = json_decode('{"st_date":"31-03-2023","voucher_no":"","remark":"'.$rmk.'","debit":"'.$dt.'","credit":"'.$ct.'","balance":"'.$balance.'"}');
+         $fy_end_md = $entity->financial_year_end ? \Carbon\Carbon::parse($entity->financial_year_end) : \Carbon\Carbon::create(2000,3,31);
+         $fy_end_year = preg_match('/(\d{4})\D*$/', (string)$selected_year, $mm) ? (int)$mm[1] : (int)$fy_end_md->format('Y');
+         $fy_end_date = \Carbon\Carbon::create($fy_end_year, (int)$fy_end_md->format('n'), 1)->endOfMonth();
+         if((int)$fy_end_md->format('j') < (int)$fy_end_date->format('j')){ $fy_end_date->day((int)$fy_end_md->format('j')); }
+         $aa = json_decode('{"st_date":"'.$fy_end_date->format('d-m-Y').'","voucher_no":"","remark":"'.$rmk.'","debit":"'.$dt.'","credit":"'.$ct.'","balance":"'.$balance.'"}');
          array_push($data,$aa);
       }      
       $efy = EntityFinancialYear::where('merchant_id',Session::get('merchant_id'))->where('status',1)->pluck('financial_year')->all();
