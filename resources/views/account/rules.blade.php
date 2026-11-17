@@ -27,8 +27,11 @@
                      </select>
                </div><br>            
                <div class="col-md-12 mb-3">
-                  Where <strong style="color: blue;">Amount</strong>
-                  <input type="hidden"  name="col_type[]" id="col_type_1" required class="form-control col_type" style="display: initial;width: 11%;" data-id="1" value="Amount" readonly>
+                  Where the first thing checked is the
+                  <select name="col_type[]" id="col_type_1" required class="form-control col_type" style="display: initial;width: 12%;" data-id="1">
+                     <option value="Amount">Amount</option>
+                     <option value="Description">Description</option>
+                  </select>
                   <!-- <select  name="col_type[]" id="col_type_1" required class="form-control col_type" style="display: initial;width: 11%;" data-id="1">
                      
                      <option value="Amount">Amount</option>
@@ -39,7 +42,7 @@
                      
                   </select> 
                   <input type="text"  name="content[]" id="content_1" class="form-control contents" style="display: initial;width: 20%;" data-id="1" required> 
-                  and <strong style="color:red">Description</strong>
+                  and the <strong id="second_label" style="color:red">Description</strong>
                   <input type="hidden" name="col_type2[]" id="col_type2_1" required class="form-control col_type2" data-id="1" style="display: initial;width: 11%;    background-color: white;" readonly>
                   <!-- <select  name="col_type2[]" id="col_type2_1" required class="form-control col_type2" data-id="1" style="display: initial;width: 11%;">
                      <option value="">Select</option>
@@ -259,6 +262,9 @@
       $("#col_type_1").val(col_type);
       $("#col_type_1").trigger('change');
       getHead(rule_action_type);
+      // older description rules were saved with the condition "Any" meaning "contains"
+      if(col_type=="Description" && rule_condition!="Exact"){ rule_condition = "like"; }
+      if(col_type=="Description" && (rule_condition1=="Any Value")){ rule_condition1 = "Any"; }
       $("#rule_condition_1").val(rule_condition);
       $("#content_1").val(content);
       $("#ac_type").html(rule_action_type);
@@ -299,15 +305,17 @@
          $("#ftext").html('is');
          $("#stext").html('contains');
       }else if($(this).val()=="Description"){
-         rule_condition = '<option value="">Select</option><option value="Exact">Exactly equal to</option><option value=">=">More than or equal to</option><option value="<=">Less than or equal to</option><option value=">">More than</option><option value="<">Less than</option>';
-         $("#content_"+id).attr("placeholder","Enter Description");
+         // A description is text: it can contain something, or match it exactly. Numbers belong to the amount.
+         rule_condition = '<option value="">Select</option><option value="like">Contains</option><option value="Exact">Is exactly</option>';
+         $("#content_"+id).attr("placeholder","Enter text to look for");
          $("#col_type2_"+id).val('Amount');
-         $("#rule_condition2_"+id).html('<option value="">Select</option><option value="Exact">Exactly equal to</option><option value=">=">More than or equal to</option><option value="<=">Less than or equal to</option><option value=">">More than</option><option value="<">Less than</option>');
-         $("#content_"+id).removeClass('amount_val'); 
-         $("#content2_"+id).addClass('amount_val'); 
-         $("#ftext").html('contains');
-         $("#stext").html('is');      
+         $("#rule_condition2_"+id).html('<option value="">Select</option><option value="Exact">Exactly equal to</option><option value=">=">More than or equal to</option><option value="<=">Less than or equal to</option><option value=">">More than</option><option value="<">Less than</option><option value="Any">Any Amount</option>');
+         $("#content_"+id).removeClass('amount_val');
+         $("#content2_"+id).addClass('amount_val');
+         $("#ftext").html('');
+         $("#stext").html('is');
       }
+      $("#second_label").text($(this).val()=="Amount" ? "Description" : "Amount");
       $("#rule_condition_"+id).html(rule_condition);
    });
    $(document).on("keypress",".amount_val",function(e){

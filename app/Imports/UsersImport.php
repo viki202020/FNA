@@ -27,6 +27,28 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
       $this->data = $data;
       $this->voucherNumbers = VoucherNumber::sequence('SBV-',5);
    }
+   // ---- rule matching helpers (used for rules whose first condition is on the Description) ----
+   private function textMatches($mode, $wanted, $text){
+      $wanted = trim((string)$wanted);
+      if($mode=="Exact"){
+         return strcasecmp(trim((string)$text), $wanted)==0;
+      }
+      // "like", "Any" and the older stored forms all mean: the description contains the text
+      if($wanted===""){ return true; }
+      return Str::contains(strtoupper((string)$text), strtoupper($wanted));
+   }
+   private function amountMatches($cond, $wanted, $amount){
+      if($cond===null || $cond==="" || $cond==="Any" || $cond==="Any Value"){ return true; }
+      $a = (float)$amount; $w = (float)$wanted;
+      switch($cond){
+         case "Exact": return abs($a-$w) < 0.005;
+         case ">=": return $a >= $w;
+         case "<=": return $a <= $w;
+         case ">":  return $a > $w;
+         case "<":  return $a < $w;
+      }
+      return false;
+   }
    public function startRow(): int{
       return $this->data['header_row']+1;
       // if($this->data['header']=="Yes"){
@@ -343,6 +365,18 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
                               $head_id = $rule->head_id;
                            }                         
                         break;
+                     }
+                  }
+               }else if($rule->col_type=="Description"){
+                  // Rule that starts on the Description: text first, then (optionally) the amount.
+                  $line_is_debit  = $debit_amount !== "" && (float)$debit_amount > 0;
+                  $line_is_credit = $credit_amount !== "" && (float)$credit_amount > 0;
+                  $direction_ok = ($rule->rule_for=="Debit" && $line_is_debit) || ($rule->rule_for=="Credit" && $line_is_credit);
+                  if($direction_ok && $this->textMatches($rule->rule_condition, $rule->content, $row[$description_col])){
+                     $line_amount = $rule->rule_for=="Debit" ? $debit_amount : $credit_amount;
+                     if($this->amountMatches($rule->rule_condition1, $rule->content1, $line_amount)){
+                        $status = 1;
+                        $head_id = $rule->head_id;
                      }
                   }
                }
