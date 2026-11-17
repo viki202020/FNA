@@ -74,7 +74,8 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
       //$rule = Rule::where('id',$select_rule)->first();
       $rules = Rule::select('*')->where('status',1)->get();
 
-      if(count($rules)>0){
+      // The lines are saved whether or not any rule exists; rules (if any) only choose the account.
+      {
          foreach ($rules as $k => $rule) {
             if($rule->rule_in==$bank){
                if($rule->col_type=="Amount"){
