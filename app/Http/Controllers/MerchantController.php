@@ -612,6 +612,8 @@ class MerchantController extends Controller{
          'year'     => FinancialYears::current(),
          'saved'    => $import->saved,
          'rejected' => $import->rejected,
+         'auto'     => $import->auto_categorised,
+         'conflicts'=> $import->conflicts,
       ]);
       //$req->session()->flash('success_msg','CSV Uploaded Successfully');
    }      

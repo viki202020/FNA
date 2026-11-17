@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\RuleConflictController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,9 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::post('/merchant/assign-head-manually', [MerchantController::class,'assignHeadManually']);
    Route::get('/merchant/vouchers', [VoucherController::class,'index'])->name('vouchers.list');
    Route::get('/merchant/voucher/{voucherNo}', [VoucherController::class,'show'])->name('vouchers.show');
+   Route::get('/merchant/rule-conflicts', [RuleConflictController::class,'conflicts'])->name('rules.conflicts');
+   Route::post('/merchant/rule-conflicts', [RuleConflictController::class,'resolve']);
+   Route::get('/merchant/rule-audit', [RuleConflictController::class,'audit'])->name('rules.audit');
    Route::get('/merchant/ledgers', [MerchantController::class,'ledgers'])->name('ledgers.list');
    Route::post('/merchant/ledger-by-head', [MerchantController::class,'ledgerByHead']);
    Route::get('/merchant/manage-account', [MerchantController::class,'manageAccount']);

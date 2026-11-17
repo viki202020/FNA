@@ -9,6 +9,9 @@
    @php $b = session('bank_upload_summary'); @endphp
    <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ count($b['rejected']) ? '#b9770e' : '#27ae60' }};background:{{ count($b['rejected']) ? '#fef5e7' : '#eafaf1' }};">
       <strong>Bank upload: {{ $b['saved'] }} line(s) saved in financial year {{ $b['year'] }}@if(count($b['rejected'])), {{ count($b['rejected']) }} rejected @endif.</strong>
+      <div style="margin-top:6px">{{ $b['auto'] ?? 0 }} line(s) were categorised by a rule.
+         @if(!empty($b['conflicts']))<strong>{{ $b['conflicts'] }} line(s) fit more than one rule and need your choice:</strong> <a href="{{ url('/merchant/rule-conflicts') }}">Rule conflicts</a>.@endif
+         <a href="{{ url('/merchant/rule-audit') }}">Rule audit</a></div>
       @if(count($b['rejected']))
          <div style="margin-top:6px">Rejected lines were not saved (a closed year cannot be changed, and every line needs a date inside {{ $b['year'] }}):
             <ul style="margin:4px 0 0 18px">

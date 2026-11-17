@@ -27,6 +27,42 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
       $this->data = $data;
       $this->voucherNumbers = VoucherNumber::sequence('SBV-',5);
    }
+   // counts shown after the upload
+   public $auto_categorised = 0;
+   public $conflicts = 0;
+   public $batch = null;
+
+   // One header row per voucher (Stage 1): new bank lines get one too, so they show up under Vouchers.
+   private function createVoucherHeader($voucher_no, $fyear, $date){
+      $merchant = Session::get('merchant_id');
+      $id = \DB::table('vouchers')->insertGetId([
+         'merchant_id'=>$merchant, 'voucher_no'=>$voucher_no, 'series'=>'SBV', 'fyear'=>$fyear,
+         'voucher_date'=>$date, 'status'=>'posted', 'version'=>1, 'created_by'=>$merchant,
+         'created_at'=>now(), 'updated_at'=>now(),
+      ]);
+      \DB::table('voucher_versions')->insert([
+         'voucher_id'=>$id, 'version'=>1, 'action'=>'created', 'reason'=>'Bank statement upload',
+         'changed_by'=>$merchant, 'created_at'=>now(), 'updated_at'=>now(),
+      ]);
+      return $id;
+   }
+
+   // Audit: which rules fitted this line and what happened (nothing is ever deleted).
+   private function recordRuleAudit($voucher_no, $fyear, $date, $description, $amount, $direction, $matched, $outcome, $applied_rule, $head_id){
+      if($this->batch===null){ $this->batch = date('YmdHis').'-'.Session::get('id'); }
+      $ids = array_values(array_unique(array_column($matched,'rule')));
+      sort($ids);
+      if($outcome=='conflict'){ $this->conflicts++; }
+      if($outcome=='auto'){ $this->auto_categorised++; }
+      \DB::table('rule_audit')->insert([
+         'merchant_id'=>Session::get('merchant_id'), 'batch'=>$this->batch, 'voucher_no'=>$voucher_no, 'fyear'=>$fyear,
+         'line_date'=>$date, 'description'=>substr($description,0,500), 'amount'=>(float)$amount, 'direction'=>$direction,
+         'matched'=>json_encode($matched), 'matched_key'=>implode(',',$ids), 'outcome'=>$outcome,
+         'applied_rule_id'=>$applied_rule, 'head_id'=>($head_id!=="" ? $head_id : null),
+         'created_by'=>Session::get('id'), 'created_at'=>now(), 'updated_at'=>now(),
+      ]);
+   }
+
    // ---- rule matching helpers (used for rules whose first condition is on the Description) ----
    private function textMatches($mode, $wanted, $text){
       $wanted = trim((string)$wanted);
@@ -112,11 +148,13 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
       $credit_amount = trim($credit_amount);
       $debit_amount = trim($debit_amount);
       //$rule = Rule::where('id',$select_rule)->first();
-      $rules = Rule::select('*')->where('status',1)->get();
+      $rules = Rule::select('*')->where('status',1)->orderBy('id')->get();
+      $matched_rules = [];
 
       // The lines are saved whether or not any rule exists; rules (if any) only choose the account.
       {
          foreach ($rules as $k => $rule) {
+            $head_id = ""; $status = 0; // judge each rule on its own
             // A rule saved for "Any bank" (empty or ANY) applies to every bank.
             if($rule->rule_in==$bank || $rule->rule_in===null || $rule->rule_in==='' || $rule->rule_in==='ANY'){
                if($rule->col_type=="Amount"){
@@ -380,9 +418,23 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
                      }
                   }
                }
+               // Do not stop at the first match: every rule is tested so that clashes can be shown.
                if(!empty($head_id)){
-                  break;
+                  $matched_rules[] = ['rule'=>$rule->id,'head'=>$head_id];
                }
+            }
+         }
+         // Outcome: no match, one account, or a clash between rules pointing to different accounts.
+         $outcome = 'none'; $applied_rule = null; $head_id = ""; $status = 0;
+         if(count($matched_rules)>0){
+            $distinct_heads = array_values(array_unique(array_column($matched_rules,'head')));
+            if(count($distinct_heads)==1){
+               $outcome = 'auto';
+               $applied_rule = $matched_rules[0]['rule'];
+               $head_id = $distinct_heads[0];
+               $status = 1;
+            }else{
+               $outcome = 'conflict';
             }
          }
          $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
@@ -392,8 +444,14 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
          // Categorising later only chooses the account for the other, reversed entry.
          // one System Bank Voucher number per bank line, shared by both of its entries
          $voucher_no = $this->voucherNumbers->next();
+         $line_date_db = date('Y-m-d',strtotime($row[$date_col]));
+         $voucher_id = $this->createVoucherHeader($voucher_no, $fyear, $line_date_db);
+         $this->recordRuleAudit($voucher_no, $fyear, $line_date_db, (string)$row[$description_col],
+                                $debit_amount !== "" ? $debit_amount : $credit_amount,
+                                $debit_amount !== "" ? 'Debit' : 'Credit', $matched_rules, $outcome, $applied_rule, $head_id);
          if(!empty($bank)){
             $statement = new Statement;
+            $statement->voucher_id = $voucher_id;
             $statement->voucher_no = $voucher_no;
             $statement->head_id = $bank;
             $statement->debit = $credit_amount;
@@ -410,6 +468,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
          }
          $this->saved++;
          return new Statement([
+            'voucher_id' => $voucher_id,
             'voucher_no' => $voucher_no,
             'head_id' => $head_id,
             'debit'    => $debit_amount,

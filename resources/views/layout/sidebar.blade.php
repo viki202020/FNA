@@ -164,6 +164,16 @@
             <div class="multi-level collapse " role="list" id="submenu-pages2" aria-expanded="false">
                <ul class="flex-column nav">
                   <li class="nav-item">
+                     <a class="nav-link" href="{{URL('/merchant/rule-conflicts')}}">
+                        <span class="sidebar-text">Rule conflicts</span>
+                     </a>
+                  </li>
+                  <li class="nav-item">
+                     <a class="nav-link" href="{{URL('/merchant/rule-audit')}}">
+                        <span class="sidebar-text">Rule audit</span>
+                     </a>
+                  </li>
+                  <li class="nav-item">
                      <a class="nav-link" href="{{URL('/merchant/vouchers')}}">
                         <span class="sidebar-text">Vouchers</span>
                      </a>
