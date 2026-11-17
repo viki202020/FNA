@@ -2339,6 +2339,7 @@ class MerchantController extends Controller{
             $head_total = 0;
             foreach ($head as $k1 => $v1){               
                $statement = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
+                     ->effective()
                      ->where("fyear",$selected_year)
                      ->where('head_id',$v1->id)
                      ->where('merchant_id',Session::get('merchant_id'))
@@ -2369,6 +2370,7 @@ class MerchantController extends Controller{
                         $head_total2 = 0;
                         foreach($head23 as $k23 => $v23){
                            $statement24 = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
+                                 ->effective()
                               ->where('head_id',$v23->id)
                               ->where('merchant_id',Session::get('merchant_id'))
                               ->where("fyear",$selected_year)
@@ -2394,6 +2396,7 @@ class MerchantController extends Controller{
                         $head_total123 = 0;
                         foreach($head33 as $k33 => $v33){
                            $statement34 = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
+                                 ->effective()
                               ->where('head_id',$v33->id)
                               ->where('merchant_id',Session::get('merchant_id'))
                               ->where("fyear",$selected_year)
@@ -2540,6 +2543,7 @@ class MerchantController extends Controller{
                $head_total2 = 0;
                foreach($head23 as $k23 => $v23){
                   $statement24 = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
+                        ->effective()
                      ->where("fyear",$selected_year)
                      ->where('head_id',$v23->id)->get();
                      $head_total2 = $head_total2 + $statement24[0]->debitAmount - $statement24[0]->creditAmount;
@@ -2557,6 +2561,7 @@ class MerchantController extends Controller{
                $head_total123 = 0;
                foreach($head33 as $k33 => $v33){
                   $statement34 = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
+                        ->effective()
                   ->where("fyear",$selected_year)
                      ->where('head_id',$v33->id)->get();
                   $head_total123 = $head_total123 + $statement34[0]->creditAmount - $statement34[0]->debitAmount;
@@ -2605,6 +2610,7 @@ class MerchantController extends Controller{
             $head_total = 0;
             foreach($head as $k1 => $v1){
                $statement = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
+                     ->effective()
                   ->where("opening",0)
                   ->where('merchant_id',Session::get('merchant_id'))
                   ->where("fyear",$selected_year)
