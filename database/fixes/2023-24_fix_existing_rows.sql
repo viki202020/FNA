@@ -43,7 +43,7 @@ SELECT NULL, s.credit, s.debit, s.remark, '24', s.st_date, 24, '2023-2024',
        0, 1, s.merchant_id, DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), s.created_by
 FROM statement s
 WHERE s.fyear = '2023-2024' AND s.opening = 0 AND s.status = 1
-  AND s.bank_id = 24 AND s.head_id <> '24' AND s.voucher_no IS NULL
+  AND s.bank_id = 24 AND s.head_id <> '24' AND (s.voucher_no IS NULL OR s.voucher_no LIKE 'SBV-%')
   AND NOT EXISTS (SELECT 1 FROM statement x
                   WHERE x.head_id = '24' AND x.bank_id = 24 AND x.fyear = '2023-2024'
                     AND x.opening = 0 AND x.st_date = s.st_date AND x.remark = s.remark

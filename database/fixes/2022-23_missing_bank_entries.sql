@@ -29,7 +29,7 @@ SELECT COUNT(*) AS rows_missing,
        SUM(CAST(NULLIF(NULLIF(debit,'-'),'') AS DECIMAL(15,2)))  AS total_debit,
        SUM(CAST(NULLIF(NULLIF(credit,'-'),'') AS DECIMAL(15,2))) AS total_credit
 FROM statement
-WHERE voucher_no IS NULL AND opening = 0 AND status = 1
+WHERE (voucher_no IS NULL OR voucher_no LIKE 'SBV-%') AND opening = 0 AND status = 1
   AND fyear = '2022-2023' AND bank_id IS NULL;
 
 
@@ -40,7 +40,7 @@ INSERT INTO statement
 SELECT NULL, s.credit, s.debit, s.remark, '24', s.st_date, 24, s.fyear,
        0, 1, s.merchant_id, DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), s.created_by
 FROM statement s
-WHERE s.voucher_no IS NULL AND s.opening = 0 AND s.status = 1
+WHERE (s.voucher_no IS NULL OR s.voucher_no LIKE 'SBV-%') AND s.opening = 0 AND s.status = 1
   AND s.fyear = '2022-2023' AND s.bank_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM statement x
                   WHERE x.head_id = '24' AND x.bank_id = 24

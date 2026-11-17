@@ -9,6 +9,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithLimit;
 use Session;
+use App\Support\VoucherNumber;
 use Illuminate\Support\Str;
 class UsersImport implements ToModel,WithStartRow,WithLimit
 {
@@ -19,6 +20,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
     */
    public function  __construct($data){
       $this->data = $data;
+      $this->voucherNumbers = VoucherNumber::sequence('SBV-',5);
    }
    public function startRow(): int{
       return $this->data['header_row']+1;
@@ -337,8 +339,11 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
          // The bank's own entry is created for EVERY line, exactly as the bank shows it
          // (money in = debit on the bank, money out = credit), whether or not a rule matched.
          // Categorising later only chooses the account for the other, reversed entry.
+         // one System Bank Voucher number per bank line, shared by both of its entries
+         $voucher_no = $this->voucherNumbers->next();
          if(!empty($bank)){
             $statement = new Statement;
+            $statement->voucher_no = $voucher_no;
             $statement->head_id = $bank;
             $statement->debit = $credit_amount;
             $statement->credit = $debit_amount;
@@ -353,6 +358,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
             $statement->save();
          }
          return new Statement([
+            'voucher_no' => $voucher_no,
             'head_id' => $head_id,
             'debit'    => $debit_amount,
             'credit' => $credit_amount,

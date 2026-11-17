@@ -24,7 +24,7 @@
 -- ---------------------------- STEP 1: preview (read-only) ------------
 SELECT
   (SELECT COUNT(*) FROM statement WHERE fyear = '2023-2024' AND opening = 0 AND bank_id = 24
-     AND (head_id IS NULL OR head_id <> '24') AND voucher_no IS NULL)        AS bank_lines,
+     AND (head_id IS NULL OR head_id <> '24') AND (voucher_no IS NULL OR voucher_no LIKE 'SBV-%'))        AS bank_lines,
   (SELECT COUNT(*) FROM statement WHERE fyear = '2023-2024' AND opening = 0
      AND head_id = '24' AND bank_id = 24)                                    AS bank_side_rows,
   (SELECT COUNT(*) FROM statement WHERE fyear IS NULL AND opening = 0
@@ -48,7 +48,7 @@ FROM (
   SELECT s.*, ROW_NUMBER() OVER (PARTITION BY s.st_date, s.remark, s.debit, s.credit ORDER BY s.id) AS rn
   FROM statement s
   WHERE s.fyear = '2023-2024' AND s.opening = 0 AND s.bank_id = 24
-    AND (s.head_id IS NULL OR s.head_id <> '24') AND s.voucher_no IS NULL
+    AND (s.head_id IS NULL OR s.head_id <> '24') AND (s.voucher_no IS NULL OR s.voucher_no LIKE 'SBV-%')
 ) o
 WHERE (SELECT COUNT(*) FROM statement x
        WHERE x.head_id = '24' AND x.bank_id = 24 AND x.opening = 0 AND x.fyear = '2023-2024'
@@ -63,7 +63,7 @@ COMMIT;
 -- Expect: bank_side_rows = bank_lines (100), bank_side_without_year = 0
 SELECT
   (SELECT COUNT(*) FROM statement WHERE fyear = '2023-2024' AND opening = 0 AND bank_id = 24
-     AND (head_id IS NULL OR head_id <> '24') AND voucher_no IS NULL)        AS bank_lines,
+     AND (head_id IS NULL OR head_id <> '24') AND (voucher_no IS NULL OR voucher_no LIKE 'SBV-%'))        AS bank_lines,
   (SELECT COUNT(*) FROM statement WHERE fyear = '2023-2024' AND opening = 0
      AND head_id = '24' AND bank_id = 24)                                    AS bank_side_rows,
   (SELECT COUNT(*) FROM statement WHERE fyear IS NULL AND opening = 0

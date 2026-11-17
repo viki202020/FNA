@@ -20,6 +20,7 @@ use App\Imports\UsersImport;
 use App\Imports\ExpencessCsvImport;
 use DB;
 use Illuminate\Support\Str;
+use App\Support\VoucherNumber;
 class MerchantController extends Controller{
    public function index(){
       return view('dashboard.dashboard');
@@ -654,7 +655,9 @@ class MerchantController extends Controller{
                   ->where('head_id',$hid)
                   ->where("statement.opening",0)
                   ->where("statement.fyear",$selected_year)
-                  ->where("statement.voucher_no",null)
+                  ->where(function($q){
+                     $q->whereNull("statement.voucher_no")->orWhere("statement.voucher_no","like","SBV-%");
+                  })
                   ->orderBy("statement.opening","desc")
                   ->orderBy(DB::raw("COALESCE(STR_TO_DATE(statement.st_date, '%Y-%m-%d'), STR_TO_DATE(statement.st_date, '%d-%m-%Y'))"),"asc")
                   ->orderBy("statement.id","asc")
@@ -2243,8 +2246,25 @@ class MerchantController extends Controller{
          "serial_col"=>$serial_col,
          "amount_contain"=>$amount_contain
       );
-      Excel::import(new ExpencessCsvImport($data), $req->file('csv_file')->store('temp'));
-      return back();
+      $import = new ExpencessCsvImport($data);
+      Excel::import($import, $req->file('csv_file')->store('temp'));
+      // After every upload: say how many vouchers were created and whether each one balances.
+      $unbalanced = [];
+      $line_count = 0;
+      foreach ($import->summary as $voucher_no => $voucher){
+         $line_count += $voucher['lines'];
+         $difference = round($voucher['debit'] - $voucher['credit'], 2);
+         if(abs($difference) > 0.004){
+            $unbalanced[$voucher_no] = ['ref'=>$voucher['ref'],'debit'=>$voucher['debit'],'credit'=>$voucher['credit'],'difference'=>$difference];
+         }
+      }
+      return back()->with('upload_summary', [
+         'vouchers'   => count($import->summary),
+         'lines'      => $line_count,
+         'first'      => count($import->summary) ? array_key_first($import->summary) : null,
+         'last'       => count($import->summary) ? array_key_last($import->summary) : null,
+         'unbalanced' => $unbalanced,
+      ]);
       //$req->session()->flash('success_msg','CSV Uploaded Successfully');
    }
    public function balanceSheet(Request $request,$year = null){

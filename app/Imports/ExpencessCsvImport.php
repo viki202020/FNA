@@ -2,6 +2,8 @@
 namespace App\Imports;
 use App\Models\Statement;
 use App\Models\Rule;
+use App\Models\Entity;
+use App\Support\VoucherNumber;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -16,8 +18,22 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
+   // Filled while the file is read: one entry per voucher created (see summary()).
+   public $summary = [];
+   private $voucherNumbers;
+   private $voucherOfSerial = [];
+   private $lineCounter = 0;
+   private $fyear = null;
+
    public function  __construct($data){
       $this->data = $data;
+      $this->voucherNumbers = VoucherNumber::sequence('UJV',4);
+      $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
+      $this->fyear = $entity ? $entity->financial_year : null;
+   }
+   private function toNumber($value){
+      $value = str_replace(',','',trim((string)$value));
+      return is_numeric($value) ? (float)$value : 0;
    }
    public function startRow(): int{
       return $this->data['header_row']+1;
@@ -67,7 +83,8 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
       $debit_amount = trim($debit_amount);
       //$rule = Rule::where('id',$select_rule)->first();
       $rules = Rule::select('*')->where('status',1)->get();
-      if(count($rules)>0){
+      // The lines are saved whether or not any rule exists; rules (if any) only choose the account.
+      {
          foreach ($rules as $k => $rule) {
             if($rule->col_type=="Amount"){
                $cond1 = $rule->rule_condition;
@@ -644,13 +661,26 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
             }
          }
          if(!empty($row[$date_col])){
+            // Lines that share a serial in the file form one voucher; each voucher gets
+            // the next system number (UJV0001, UJV0002, ...). The file's own serial is kept in the remark.
+            $serial = trim((string)($row[$serial_col] ?? ''));
+            $key = ($serial !== '') ? $serial : ('__line'.(++$this->lineCounter));
+            if(!isset($this->voucherOfSerial[$key])){
+               $this->voucherOfSerial[$key] = $this->voucherNumbers->next();
+               $this->summary[$this->voucherOfSerial[$key]] = ['ref'=>$serial,'debit'=>0,'credit'=>0,'lines'=>0];
+            }
+            $voucher_no = $this->voucherOfSerial[$key];
+            $this->summary[$voucher_no]['debit'] += $this->toNumber($debit_amount);
+            $this->summary[$voucher_no]['credit'] += $this->toNumber($credit_amount);
+            $this->summary[$voucher_no]['lines']++;
             return new Statement([
                'head_id'     => $head_id,
                'debit'    => $debit_amount,
                'credit' => $credit_amount,
-               'remark' => $row[$description_col],
+               'remark' => $row[$description_col].($serial !== '' ? ' [file ref '.$serial.']' : ''),
                'st_date' => date('Y-m-d',strtotime($row[$date_col])),
-               'voucher_no'=>$row[$serial_col],
+               'fyear' => $this->fyear,
+               'voucher_no'=>$voucher_no,
                'status' => $status,
                'merchant_id' => Session::get('id'),
                'created_at' => date('d-m-Y H:i:s'),

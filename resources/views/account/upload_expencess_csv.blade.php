@@ -181,6 +181,27 @@
             </div>
             <div class="mt-3">
                <button class="btn btn-gray-800 mt-2 animate-up-2" type="submit">Save all</button>
+               @if(session('upload_summary'))
+                  @php $u = session('upload_summary'); @endphp
+                  <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ count($u['unbalanced']) ? '#c0392b' : '#27ae60' }};background:{{ count($u['unbalanced']) ? '#fdecea' : '#eafaf1' }};">
+                     @if($u['vouchers'] == 0)
+                        <strong style="color:#c0392b">Nothing was saved.</strong> No line was read. Check the header row, the last row and the column choices.
+                     @else
+                        <strong>Saved {{ $u['lines'] }} lines in {{ $u['vouchers'] }} vouchers ({{ $u['first'] }} to {{ $u['last'] }}).</strong>
+                        @if(count($u['unbalanced']) == 0)
+                           <span style="color:#1e8449">Every voucher balances (debits = credits).</span>
+                        @else
+                           <div style="color:#c0392b;margin-top:6px"><strong>WARNING: {{ count($u['unbalanced']) }} voucher(s) do not balance:</strong>
+                              <ul style="margin:4px 0 0 18px">
+                              @foreach($u['unbalanced'] as $vno => $x)
+                                 <li>{{ $vno }}@if($x['ref']!='') (file ref {{ $x['ref'] }})@endif: debits {{ number_format($x['debit'],2) }}, credits {{ number_format($x['credit'],2) }}, difference {{ number_format($x['difference'],2) }}</li>
+                              @endforeach
+                              </ul>
+                           </div>
+                        @endif
+                     @endif
+                  </div>
+               @endif
                @if(session('success_msg'))
                   <span style="color:green">{{session('success_msg')}}</span>
                @endif

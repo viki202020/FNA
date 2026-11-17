@@ -53,7 +53,7 @@
                         <td style="text-align:right">{{$ledger->debit}}</td> 
                         <td style="text-align:right">{{$ledger->credit}}</td> 
                         <td style="text-align:right">{{$ledger->balance}}</td>
-                        <td>@if($ledger->voucher_no!='') Journal Entry @else Bank-AU SFB-5398 @endif</td>
+                        <td>@if(empty($ledger->voucher_no)) Bank entry @elseif(str_starts_with($ledger->voucher_no,'SBV-')) Bank upload @elseif(str_starts_with($ledger->voucher_no,'UJV')) Uploaded journal @elseif(str_starts_with($ledger->voucher_no,'MJV')) Manual journal @else Journal Entry @endif</td>
                      </tr>
                   @endforeach
                </tbody>
