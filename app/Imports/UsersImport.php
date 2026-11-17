@@ -95,7 +95,8 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
       // The lines are saved whether or not any rule exists; rules (if any) only choose the account.
       {
          foreach ($rules as $k => $rule) {
-            if($rule->rule_in==$bank){
+            // A rule saved for "Any bank" (empty or ANY) applies to every bank.
+            if($rule->rule_in==$bank || $rule->rule_in===null || $rule->rule_in==='' || $rule->rule_in==='ANY'){
                if($rule->col_type=="Amount"){
                   $cond1 = $rule->rule_condition;
                   if($rule->rule_condition=="Exact"){

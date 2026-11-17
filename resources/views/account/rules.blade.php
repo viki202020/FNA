@@ -19,6 +19,7 @@
                         <option value="Debit">Money going out (Debit)</option>
                      </select>
                      in <select class="form-control" style="display: initial;width: 20%;" name="rule_in[]" id="rule_in" required><option value="">Select In</option>
+                        <option value="ANY">Any bank</option>
                         @foreach($banks as $bank)
                            <option value="{{$bank->id}}">{{$bank->name}}</option>
                         @endforeach
