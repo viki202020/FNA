@@ -184,6 +184,15 @@
                @if(session('upload_summary'))
                   @php $u = session('upload_summary'); @endphp
                   <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ count($u['unbalanced']) ? '#c0392b' : '#27ae60' }};background:{{ count($u['unbalanced']) ? '#fdecea' : '#eafaf1' }};">
+                     @if(!empty($u['rejected']))
+                        <div style="color:#7e5109;margin-bottom:6px"><strong>{{ count($u['rejected']) }} line(s) rejected</strong> (not saved: they must be dated inside financial year {{ $u['year'] }}):
+                           <ul style="margin:4px 0 0 18px">
+                              @foreach(array_slice($u['rejected'],0,8) as $r)
+                                 <li>{{ $r['date'] }}: {{ $r['why'] }}@if($r['remark']!='') &mdash; {{ $r['remark'] }}@endif</li>
+                              @endforeach
+                           </ul>
+                        </div>
+                     @endif
                      @if($u['vouchers'] == 0)
                         <strong style="color:#c0392b">Nothing was saved.</strong> No line was read. Check the header row, the last row and the column choices.
                      @else

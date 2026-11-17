@@ -4,6 +4,7 @@ use App\Models\Statement;
 use App\Models\Rule;
 use App\Models\Entity;
 use App\Support\VoucherNumber;
+use App\Support\FinancialYears;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -20,6 +21,7 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
     */
    // Filled while the file is read: one entry per voucher created (see summary()).
    public $summary = [];
+   public $rejected = [];
    private $voucherNumbers;
    private $voucherOfSerial = [];
    private $lineCounter = 0;
@@ -46,6 +48,12 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
       array_unshift($row,"");
       unset($row[0]);
 
+      // Only lines dated inside the current financial year are accepted.
+      $line_date = $row[$this->data['date_col']] ?? '';
+      if(!empty($line_date) && (strtotime($line_date)===false || !FinancialYears::dateInCurrentYear($line_date))){
+         $this->rejected[] = ['date'=>(string)$line_date,'why'=>'outside the current financial year','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
+         return null;
+      }
       $amount_column = $this->data['amount_column'];
       $date_col = $this->data['date_col'];
       $description_col = $this->data['description_col'];

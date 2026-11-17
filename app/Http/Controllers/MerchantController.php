@@ -21,6 +21,7 @@ use App\Imports\ExpencessCsvImport;
 use DB;
 use Illuminate\Support\Str;
 use App\Support\VoucherNumber;
+use App\Support\FinancialYears;
 class MerchantController extends Controller{
    public function index(){
       return view('dashboard.dashboard');
@@ -601,8 +602,13 @@ class MerchantController extends Controller{
          //"select_rule"=>$select_rule,
          "amount_contain"=>$amount_contain
       );
-      Excel::import(new UsersImport($data), $req->file('csv_file')->store('temp'));
-      return redirect('merchant/uncategorized-data');
+      $import = new UsersImport($data);
+      Excel::import($import, $req->file('csv_file')->store('temp'));
+      return redirect('merchant/uncategorized-data')->with('bank_upload_summary', [
+         'year'     => FinancialYears::current(),
+         'saved'    => $import->saved,
+         'rejected' => $import->rejected,
+      ]);
       //$req->session()->flash('success_msg','CSV Uploaded Successfully');
    }      
    public function fileExport(){
@@ -688,13 +694,21 @@ class MerchantController extends Controller{
                                  ->where('status',1)
                                  ->orderBy('id')
                                  ->get();
-      return view('account.statement',["bank"=>$bank_open,"bankname"=>$bankname,"selected_year"=>$selected_year,"selected_bank"=>$hid,"entity_financial_year"=>$entity_financial_year,"entity"=>$entity]);
+      $show_closed = (bool)request('closed');
+      $year_options = FinancialYears::options($entity_financial_year->pluck('financial_year')->all(), $selected_year, $show_closed);
+      $year_is_closed = !FinancialYears::isOpen($selected_year);
+      $year_is_reopened = FinancialYears::isReopened($selected_year);
+      return view('account.statement',["year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"bank"=>$bank_open,"bankname"=>$bankname,"selected_year"=>$selected_year,"selected_bank"=>$hid,"entity_financial_year"=>$entity_financial_year,"entity"=>$entity]);
    }
    public function uncategorizedData(Request $request){
       if($request->ajax()){      
+         $open_years = FinancialYears::openYears();
          $data = Statement::leftjoin('head', 'statement.head_id', '=', 'head.id')
                   ->where("merchant_id",Session::get('merchant_id'))
                   ->where("statement.status",0)
+                  ->where(function($q) use ($open_years){
+                     $q->whereNull("statement.fyear")->orWhereIn("statement.fyear",$open_years);
+                  })
                   ->orderBy(DB::raw("STR_TO_DATE(statement.st_date, '%d-%m-%Y')"),"desc")
                   ->orderBy("statement.id","desc")
                   ->get(['statement.*', 'head.name']);
@@ -723,6 +737,10 @@ class MerchantController extends Controller{
          'select_rule' => 'required'
       ]);
       $select_rule = $req->input('select_rule');    
+      $closed_line = Statement::whereIn('id',(array)$req->input('apply_row_id'))->get()->first(function($l){ return !FinancialYears::isOpen($l->fyear); });
+      if($closed_line){
+         return response()->json(['success'=>false,'message'=>FinancialYears::message($closed_line->fyear)]);
+      }
       $row = Statement::select('statement.*')
                ->where("merchant_id",Session::get('merchant_id'))
                ->whereIn("statement.id",$req->input('apply_row_id'))
@@ -1326,6 +1344,9 @@ class MerchantController extends Controller{
                ->where("merchant_id",Session::get('merchant_id'))
                ->where("statement.status",0)
                ->where("statement.opening",0)
+               ->where(function($q){
+                  $q->whereNull("statement.fyear")->orWhereIn("statement.fyear",FinancialYears::openYears());
+               })
                ->get();
       foreach ($row as $key => $value) {
          $debit_amount = "";$credit_amount = "";$status = 0;$head_id = "";
@@ -1926,6 +1947,10 @@ class MerchantController extends Controller{
    public function assignHeadManually(Request $req){
       $input = $req->all();
       if(isset($input['voucher_row'])){
+         $closed_line = Statement::whereIn('id',$input['voucher_row'])->get()->first(function($l){ return !FinancialYears::isOpen($l->fyear); });
+         if($closed_line){
+            return response()->json(['success'=>false,'message'=>FinancialYears::message($closed_line->fyear)]);
+         }
          foreach ($input['voucher_row'] as $key => $value){
             if($input['voucher_head'][$key]!=""){
                $statement = Statement::find($value);
@@ -1942,6 +1967,9 @@ class MerchantController extends Controller{
       $select_head = $input['select_head'];
       $manually_id = $input['manually_id'];
       $statement = Statement::find($manually_id);
+      if(!FinancialYears::isOpen($statement->fyear)){
+         return response()->json(['success'=>false,'message'=>FinancialYears::message($statement->fyear)]);
+      }
       $statement->head_id = $select_head;
       $statement->status = 1;     
       $statement->updated_at = date('d-m-Y H:i:s');
@@ -2259,6 +2287,8 @@ class MerchantController extends Controller{
          }
       }
       return back()->with('upload_summary', [
+         'year'       => FinancialYears::current(),
+         'rejected'   => $import->rejected,
          'vouchers'   => count($import->summary),
          'lines'      => $line_count,
          'first'      => count($import->summary) ? array_key_first($import->summary) : null,
@@ -2382,7 +2412,11 @@ class MerchantController extends Controller{
                                                    ->where('status',1)
                                                    ->get();
       
-      return view('account.balance_sheet',["account_type_parents"=>$account_type_parent,"financial_year"=>$financial_year_end,"entity"=>$entity,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year]);
+      $show_closed = (bool)request('closed');
+      $year_options = FinancialYears::options($entity_financial_year->pluck('financial_year')->all(), $selected_year, $show_closed);
+      $year_is_closed = !FinancialYears::isOpen($selected_year);
+      $year_is_reopened = FinancialYears::isReopened($selected_year);
+      return view('account.balance_sheet',["year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"account_type_parents"=>$account_type_parent,"financial_year"=>$financial_year_end,"entity"=>$entity,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year]);
    }
    public function ledgerByHeadId(Request $request,$id,$year = null){
       $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
@@ -2603,7 +2637,11 @@ class MerchantController extends Controller{
       $entity_financial_year = EntityFinancialYear::where('merchant_id',Session::get('merchant_id'))
                                                    ->where('status',1)
                                                    ->get();
-      return view('account.profit_loss',["account_type_parents"=>$account_type_parent,"pl"=>$pl,"entity"=>$entity,"selected_year"=>$selected_year,"entity_financial_year"=>$entity_financial_year]);
+      $show_closed = (bool)request('closed');
+      $year_options = FinancialYears::options($entity_financial_year->pluck('financial_year')->all(), $selected_year, $show_closed);
+      $year_is_closed = !FinancialYears::isOpen($selected_year);
+      $year_is_reopened = FinancialYears::isReopened($selected_year);
+      return view('account.profit_loss',["year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"account_type_parents"=>$account_type_parent,"pl"=>$pl,"entity"=>$entity,"selected_year"=>$selected_year,"entity_financial_year"=>$entity_financial_year]);
    }
    public function trialBalance(Request $request,$year = null){
       $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
@@ -2687,11 +2725,19 @@ class MerchantController extends Controller{
          $entityname = $entity->name;
          $address = $entity->address.",".$entity->city.",".$entity->state.",".$entity->pincode;
       }
-      return view('account.trial_balance',["heads"=>$head,"debit_total"=>number_format($debit_total,2),"credit_total"=>number_format($credit_total,2),"close_total"=>(float) $close_total,"open_total"=>number_format($open_total,2),"entity_name"=>$entityname,"address"=>$address,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year,"entity"=>$entity]);
+      $show_closed = (bool)request('closed');
+      $year_options = FinancialYears::options($entity_financial_year->pluck('financial_year')->all(), $selected_year, $show_closed);
+      $year_is_closed = !FinancialYears::isOpen($selected_year);
+      $year_is_reopened = FinancialYears::isReopened($selected_year);
+      return view('account.trial_balance',["year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"heads"=>$head,"debit_total"=>number_format($debit_total,2),"credit_total"=>number_format($credit_total,2),"close_total"=>(float) $close_total,"open_total"=>number_format($open_total,2),"entity_name"=>$entityname,"address"=>$address,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year,"entity"=>$entity]);
    }
    public function assignBulkHeadManually(Request $request){
       $input = $request->all();
       $id = explode(",",$input['row_id']);
+      $closed_line = Statement::whereIn('id', $id)->get()->first(function($l){ return !FinancialYears::isOpen($l->fyear); });
+      if($closed_line){
+         return response()->json(['success'=>false,'data'=>'','message'=>FinancialYears::message($closed_line->fyear)]);
+      }
       $update = Statement::whereIn('id', $id)->update(['head_id' => $input['select_bulk_head'],'status'=>1]);
       if($update){
          $response = [

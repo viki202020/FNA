@@ -8,14 +8,12 @@
 <div class="row">
    <div class="col-12 col-xl-12">
       <div class="card card-body border-0 shadow mb-4 mt-4">
-         <select class="form-control" style="width: 12%;" id="financial_year">
-            @foreach($entity_financial_year as $year)
-               <option value="{{$year->financial_year}}" @if($selected_year==$year->financial_year) selected @endif>{{$year->financial_year}}</option>
+         <select class="form-control" style="width:auto;min-width:150px;" id="financial_year">
+            @foreach($year_options as $y)
+               <option value="{{ $y }}" @if($selected_year==$y) selected @endif>{{ $y }}</option>
             @endforeach
-            @if(!collect($entity_financial_year)->contains('financial_year',$entity->financial_year))
-               <option value="{{$entity->financial_year}}" @if($selected_year==$entity->financial_year) selected @endif>{{$entity->financial_year}}</option>
-            @endif
          </select>
+         @include('account._year_controls')
          <p style="text-align: center;font-size: 26px;">{{$entity->name}}</p>
          <p style="text-align: center;font-size: 12px;">({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}})</p>
          <h2 class="h1 mb-2" style="text-align: center;">Profit & Loss for the year {{$selected_year}}</h2>            
@@ -53,7 +51,7 @@
 @push('script-js')
 <script type="text/javascript">   
   $("#financial_year").change(function(){
-     window.location = "{{url('merchant/profit-loss')}}/"+$(this).val();
+     window.location = "{{url('merchant/profit-loss')}}/"+$(this).val()+"{{ request('closed') ? '?closed=1' : '' }}";
   });
 </script>
 @endpush

@@ -23,14 +23,12 @@
                <option value="{{$bank1->id}}" @if($selected_bank==$bank1->id) selected @endif>{{$bank1->name}}</option>
                @endforeach
             </select>
-            <select id="financial_year" class="form-control" style="max-width:160px;">
-               @foreach($entity_financial_year as $fy)
-               <option value="{{$fy->financial_year}}" @if($selected_year==$fy->financial_year) selected @endif>{{$fy->financial_year}}</option>
-               @endforeach
-               @if(!$entity_financial_year->contains('financial_year',$entity->financial_year))
-               <option value="{{$entity->financial_year}}" @if($selected_year==$entity->financial_year) selected @endif>{{$entity->financial_year}}</option>
-               @endif
-            </select>
+            <select class="form-control" style="max-width:190px;" id="financial_year">
+            @foreach($year_options as $y)
+               <option value="{{ $y }}" @if($selected_year==$y) selected @endif>{{ $y }}</option>
+            @endforeach
+         </select>
+         @include('account._year_controls')
          </div>
          <p style="text-align:right;">Opening Balance : {{$bank}}</p>
          <table class="table table-bordered yajra-datatable">
@@ -87,7 +85,7 @@
     });
 
    function openStatement(){
-      window.location = "{{ url('merchant/statement') }}/" + $("#financial_year").val() + "/" + $("#bank").val();
+      window.location = "{{ url('merchant/statement') }}/" + $("#financial_year").val() + "/" + $("#bank").val() + "{{ request('closed') ? '?closed=1' : '' }}";
    }
    $("#bank").change(openStatement);
    $("#financial_year").change(openStatement);

@@ -5,6 +5,22 @@
    @include('layout.sidebar')
 @endsection
 @section('contentbody')
+@if(session('bank_upload_summary'))
+   @php $b = session('bank_upload_summary'); @endphp
+   <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ count($b['rejected']) ? '#b9770e' : '#27ae60' }};background:{{ count($b['rejected']) ? '#fef5e7' : '#eafaf1' }};">
+      <strong>Bank upload: {{ $b['saved'] }} line(s) saved in financial year {{ $b['year'] }}@if(count($b['rejected'])), {{ count($b['rejected']) }} rejected @endif.</strong>
+      @if(count($b['rejected']))
+         <div style="margin-top:6px">Rejected lines were not saved (a closed year cannot be changed, and every line needs a date inside {{ $b['year'] }}):
+            <ul style="margin:4px 0 0 18px">
+               @foreach(array_slice($b['rejected'],0,8) as $r)
+                  <li>{{ $r['date'] !== '' ? $r['date'] : '(no date)' }}: {{ $r['why'] }}@if($r['remark']!='') &mdash; {{ $r['remark'] }}@endif</li>
+               @endforeach
+               @if(count($b['rejected']) > 8)<li>... and {{ count($b['rejected']) - 8 }} more</li>@endif
+            </ul>
+         </div>
+      @endif
+   </div>
+@endif
 <style>
     table td {
         word-break: break-word;
@@ -261,7 +277,7 @@
                alert("Rule Applied Successfully.");
                location.reload();
             }else{
-               alert("Something went wrong.");
+               alert((res && res.message) ? res.message : "Something went wrong.");
             }
          }
       });
@@ -397,6 +413,8 @@
            if(data==1){
                alert("Rule Applied Successfully");
                location.reload();
+           }else if(data && data.message){
+               alert(data.message);
            }
          }
       });       
@@ -479,6 +497,8 @@
            if(data==1){
                alert("Head Assigned Successfully");
                location.reload();
+           }else if(data && data.message){
+               alert(data.message);
            }
          }
       });       
@@ -503,7 +523,7 @@
                getData();
                $("#manuallyBulkModal").modal('toggle');
            }else{
-            alert("Something went wrong");
+            alert((data && data.message) ? data.message : "Something went wrong");
            }
          }
       });       

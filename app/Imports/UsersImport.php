@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithLimit;
 use Session;
 use App\Support\VoucherNumber;
+use App\Support\FinancialYears;
 use Illuminate\Support\Str;
 class UsersImport implements ToModel,WithStartRow,WithLimit
 {
@@ -18,6 +19,10 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
+   // what the upload did, read by the controller afterwards
+   public $saved = 0;
+   public $rejected = [];
+
    public function  __construct($data){
       $this->data = $data;
       $this->voucherNumbers = VoucherNumber::sequence('SBV-',5);
@@ -37,6 +42,17 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
    public function model(array $row){
       array_unshift($row,"");
       unset($row[0]);
+      // Only lines dated inside the current financial year are accepted: a closed year
+      // cannot be changed, and a line must belong to the year it is filed under.
+      $line_date = $row[$this->data['date_col']] ?? '';
+      if(empty($line_date) || strtotime($line_date)===false){
+         $this->rejected[] = ['date'=>(string)$line_date,'why'=>'no valid date','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
+         return null;
+      }
+      if(!FinancialYears::dateInCurrentYear($line_date)){
+         $this->rejected[] = ['date'=>date('Y-m-d',strtotime($line_date)),'why'=>'outside the current financial year','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
+         return null;
+      }
       $amount_column = $this->data['amount_column'];
       $bank = $this->data['bank'];
       $date_col = $this->data['date_col'];
@@ -357,6 +373,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
             $statement->created_by = Session::get('id');
             $statement->save();
          }
+         $this->saved++;
          return new Statement([
             'voucher_no' => $voucher_no,
             'head_id' => $head_id,
