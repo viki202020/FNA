@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MerchantController;
+use App\Http\Controllers\VoucherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,6 +53,8 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::post('/merchant/apply-rule', [MerchantController::class,'applyRule']);
    Route::post('/merchant/apply-bulk-rule', [MerchantController::class,'applyBulkRule']);
    Route::post('/merchant/assign-head-manually', [MerchantController::class,'assignHeadManually']);
+   Route::get('/merchant/vouchers', [VoucherController::class,'index'])->name('vouchers.list');
+   Route::get('/merchant/voucher/{voucherNo}', [VoucherController::class,'show'])->name('vouchers.show');
    Route::get('/merchant/ledgers', [MerchantController::class,'ledgers'])->name('ledgers.list');
    Route::post('/merchant/ledger-by-head', [MerchantController::class,'ledgerByHead']);
    Route::get('/merchant/manage-account', [MerchantController::class,'manageAccount']);
