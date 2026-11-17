@@ -910,7 +910,8 @@
             alert(response.success);
          },
          error: function(response){
-            //alert(response.success);
+            var msg = (response.responseJSON && response.responseJSON.errors) ? Object.values(response.responseJSON.errors)[0][0] : "The form was not saved. Please check the fields.";
+            alert(msg);
          },
          complete: function(response){
             $('.save_supplier').html('Submit');
@@ -934,7 +935,8 @@
             alert(response.success);
          },
          error: function(response){
-            //alert(response.success);
+            var msg = (response.responseJSON && response.responseJSON.errors) ? Object.values(response.responseJSON.errors)[0][0] : "The form was not saved. Please check the fields.";
+            alert(msg);
          },
          complete: function(response){
             $('.save_bank').html('Submit');
@@ -958,7 +960,8 @@
             alert(response.success);
          },
          error: function(response){
-            //alert(response.success);
+            var msg = (response.responseJSON && response.responseJSON.errors) ? Object.values(response.responseJSON.errors)[0][0] : "The form was not saved. Please check the fields.";
+            alert(msg);
          },
          complete: function(response){
             $('.save_rent').html('Submit');
@@ -982,7 +985,8 @@
             alert(response.success);
          },
          error: function(response){
-            //alert(response.success);
+            var msg = (response.responseJSON && response.responseJSON.errors) ? Object.values(response.responseJSON.errors)[0][0] : "The form was not saved. Please check the fields.";
+            alert(msg);
          },
          complete: function(response){
             $('.save_supplier').html('Submit');

@@ -88,10 +88,10 @@
                <div class="col-md-3 mb-3">
                   <div class="form-group">
                      <label for="gst">GSTIN</label>
-                     <input class="form-control" id="gst" type="text" placeholder="GSTIN" required name="gst">
+                     <input class="form-control" id="gst" type="text" placeholder="GSTIN / ABN" required name="gst">
                   </div>
                   <ul style="color: red;">
-                     @error('state'){{$message}}@enderror                        
+                     @error('gst'){{$message}}@enderror                        
                   </ul>
                </div>
                <div class="col-md-2 mb-3">

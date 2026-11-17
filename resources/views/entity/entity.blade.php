@@ -25,6 +25,7 @@
                   <label for="GSTIN">Your GSTIN*</label>
                   <input class="form-control" type="text" placeholder="e.g 29APPCK7465F1Z1"  name="gst" id="gst" required>
                   <small><input type="checkbox" id="check_gst"> <label for="">I don't have GSTIN</label> </small>
+                  @error('gst')<div style="color:#c0392b;font-size:13px;margin-top:4px;">{{ $message }}</div>@enderror
                </div>
             </div>
             <div class="col-md-3 mb-3 FrequencyDiv">
@@ -112,6 +113,7 @@
                   <div class="form-group">
                      <label for="end_year">Financial Year End</label><br>
                      <input type="date" name="end_year" id="end_year" class="form-control" value="{{$financial_year_end}}">                     
+                     <small class="text-muted">Indian companies usually run April to March; Australian companies July to June. Change both dates if yours differs.</small>
                   </div>                  
                </div>
                <input type="hidden" name="entity_id" id="entity_id">

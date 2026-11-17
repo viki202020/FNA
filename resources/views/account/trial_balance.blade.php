@@ -58,6 +58,13 @@
                      </tr>                     
                   </tbody>
                </table>
+         <div style="margin:12px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ abs($tb_difference) < 0.005 ? "#27ae60" : "#c0392b" }};background:{{ abs($tb_difference) < 0.005 ? "#eafaf1" : "#fdecea" }};color:{{ abs($tb_difference) < 0.005 ? "#1e8449" : "#922b21" }};font-weight:bold;">
+   @if(abs($tb_difference) < 0.005)
+      Balanced: total debits equal total credits.
+   @else
+      OUT BY {{ number_format(abs($tb_difference),2) }}: {{ $tb_difference > 0 ? "debits are higher than credits" : "credits are higher than debits" }}.
+   @endif
+</div>
                    
             </div>
          </div>

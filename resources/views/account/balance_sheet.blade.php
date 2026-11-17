@@ -36,7 +36,14 @@
                         </li>
                      @endforeach
                   </ul>
-               @endforeach                     
+               @endforeach
+               <div style="margin:12px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ abs($bs_difference) < 0.005 ? "#27ae60" : "#c0392b" }};background:{{ abs($bs_difference) < 0.005 ? "#eafaf1" : "#fdecea" }};color:{{ abs($bs_difference) < 0.005 ? "#1e8449" : "#922b21" }};font-weight:bold;">
+   @if(abs($bs_difference) < 0.005)
+      Balanced: Assets equal Equity and Liabilities.
+   @else
+      OUT BY {{ number_format(abs($bs_difference),2) }}: {{ $bs_difference > 0 ? "Assets are higher than Equity and Liabilities" : "Equity and Liabilities are higher than Assets" }}.
+   @endif
+</div>
             </div>
          </div>
       </div>      

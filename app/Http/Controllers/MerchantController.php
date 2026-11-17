@@ -22,6 +22,7 @@ use DB;
 use Illuminate\Support\Str;
 use App\Support\VoucherNumber;
 use App\Support\FinancialYears;
+use App\Support\TaxId;
 class MerchantController extends Controller{
    public function index(){
       return view('dashboard.dashboard');
@@ -83,7 +84,7 @@ class MerchantController extends Controller{
       $pincode = $req->input('pincode');
       $mobile = $req->input('mobile');
       $email = $req->input('email'); 
-      $gst = $req->input('gst');
+      $gst = TaxId::clean($req->input('gst'));
       $name = $req->input('name');    
       $validated = $req->validate([
          'address' => 'required',        
@@ -92,7 +93,8 @@ class MerchantController extends Controller{
          'pincode' => 'required',
          'mobile' => 'required',
          'email' => 'required',
-         'name' => 'required'
+         'name' => 'required',
+         'gst' => [function($attribute,$value,$fail){ $message = TaxId::error($value); if($message){ $fail($message); } }],
       ]);
       if(!empty($req->input('entity_id'))){
          $entity = Entity::find($req->input('entity_id'));
@@ -159,7 +161,7 @@ class MerchantController extends Controller{
       $mobile = $req->input('mobile');
       $display_name = $req->input('display_name'); 
       $gst_type = $req->input('gst_type');
-      $gst = $req->input('gst');
+      $gst = TaxId::clean($req->input('gst'));
       $billing_street = $req->input('billing_street1');
       $billing_city = $req->input('billing_city1');
       $billing_state = $req->input('billing_state1');
@@ -182,7 +184,7 @@ class MerchantController extends Controller{
          'mobile' => 'required',
          'display_name' => 'required',
          'gst_type' => 'required',
-         'gst' => 'required'
+         'gst' => ['required', function($attribute,$value,$fail){ $message = TaxId::error($value); if($message){ $fail($message); } }]
       ]);
       
       if(!empty($req->input('customer_id'))){
@@ -2049,7 +2051,11 @@ class MerchantController extends Controller{
       $mobile = $req->input('mobile');
       $display_name = $req->input('display_name'); 
       $gst_type = $req->input('gst_type');
-      $gst = $req->input('gst');
+      $tax_id_error = TaxId::error($req->input('gst'));
+      if($tax_id_error){
+         return response()->json(['success' => $tax_id_error, 'errors' => ['gst' => [$tax_id_error]]], 422);
+      }
+      $gst = TaxId::clean($req->input('gst'));
       $billing_street = $req->input('billing_street');
       $billing_city = $req->input('billing_city');
       $billing_state = $req->input('billing_state');
@@ -2313,6 +2319,7 @@ class MerchantController extends Controller{
             $financial_year_end = date('d-m-Y',strtotime($chosen_year->end_year));
          }
       }
+      $bs_raw = [];
       $account_type_parent = AccountTypeParent::where('financial_statement_id',1)
       ->orderBy('sequence')
       ->get();
@@ -2405,6 +2412,7 @@ class MerchantController extends Controller{
             $account_type[$k]->head = $head;
             $account_total = $account_total + $head_total;
          }
+         $bs_raw[$value->id] = round($account_total,2);
          $account_type_parent[$key]->account_total = number_format($account_total,2);
          $account_type_parent[$key]->child = $account_type;
       }
@@ -2416,7 +2424,9 @@ class MerchantController extends Controller{
       $year_options = FinancialYears::options($entity_financial_year->pluck('financial_year')->all(), $selected_year, $show_closed);
       $year_is_closed = !FinancialYears::isOpen($selected_year);
       $year_is_reopened = FinancialYears::isReopened($selected_year);
-      return view('account.balance_sheet',["year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"account_type_parents"=>$account_type_parent,"financial_year"=>$financial_year_end,"entity"=>$entity,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year]);
+      // Assets (group 1) must equal Equity and Liabilities (group 4)
+      $bs_difference = round(($bs_raw[1] ?? 0) - ($bs_raw[4] ?? 0), 2);
+      return view('account.balance_sheet',["bs_difference"=>$bs_difference,"year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"account_type_parents"=>$account_type_parent,"financial_year"=>$financial_year_end,"entity"=>$entity,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year]);
    }
    public function ledgerByHeadId(Request $request,$id,$year = null){
       $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
@@ -2729,7 +2739,7 @@ class MerchantController extends Controller{
       $year_options = FinancialYears::options($entity_financial_year->pluck('financial_year')->all(), $selected_year, $show_closed);
       $year_is_closed = !FinancialYears::isOpen($selected_year);
       $year_is_reopened = FinancialYears::isReopened($selected_year);
-      return view('account.trial_balance',["year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"heads"=>$head,"debit_total"=>number_format($debit_total,2),"credit_total"=>number_format($credit_total,2),"close_total"=>(float) $close_total,"open_total"=>number_format($open_total,2),"entity_name"=>$entityname,"address"=>$address,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year,"entity"=>$entity]);
+      return view('account.trial_balance',["tb_difference"=>round($debit_total - $credit_total, 2),"year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"heads"=>$head,"debit_total"=>number_format($debit_total,2),"credit_total"=>number_format($credit_total,2),"close_total"=>(float) $close_total,"open_total"=>number_format($open_total,2),"entity_name"=>$entityname,"address"=>$address,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year,"entity"=>$entity]);
    }
    public function assignBulkHeadManually(Request $request){
       $input = $request->all();
@@ -2773,11 +2783,15 @@ class MerchantController extends Controller{
    public function closeBook(Request $request){
       $merchant_id = Session::get('merchant_id');
       $entity = Entity::where('merchant_id',$merchant_id)->first();
-      $year = explode("-",$entity->financial_year_end);
-      $nyear = (int)$year[0];
-      $nstart = $nyear."-04-01";
-      $nend = ($nyear + 1)."-03-31";
-      $new_year = $nyear."-".($nyear + 1);
+      // The next year starts the day after this one ends and lasts one year. This follows the
+      // company's own dates, so it works for April-March (India), July-June (Australia),
+      // or any other financial year. The label is built like the entity screen builds it.
+      $next_start = \Carbon\Carbon::parse($entity->financial_year_end)->addDay();
+      $next_end = $next_start->copy()->addYear()->subDay();
+      $nstart = $next_start->format('Y-m-d');
+      $nend = $next_end->format('Y-m-d');
+      $nyear = (int)$next_start->format('Y');
+      $new_year = $next_start->format('Y')."-".$next_end->format('Y');
       $closing_year = $entity->financial_year;
 
       // Do not create the opening balances twice.
