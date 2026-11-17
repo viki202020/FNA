@@ -5,6 +5,12 @@
    @include('layout.sidebar')
 @endsection
 @section('contentbody')
+@if(session('rule_apply_msg'))
+   <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid #27ae60;background:#eafaf1;">
+      {{ session('rule_apply_msg') }}
+      <a href="{{ url('/merchant/rule-conflicts') }}">Rule conflicts</a> &middot; <a href="{{ url('/merchant/rule-audit') }}">Rule audit</a>
+   </div>
+@endif
 @if(session('bank_upload_summary'))
    @php $b = session('bank_upload_summary'); @endphp
    <div style="margin:10px 0;padding:10px 14px;border-radius:6px;border:1px solid {{ count($b['rejected']) ? '#b9770e' : '#27ae60' }};background:{{ count($b['rejected']) ? '#fef5e7' : '#eafaf1' }};">
