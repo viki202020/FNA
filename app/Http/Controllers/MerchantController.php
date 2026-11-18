@@ -955,7 +955,17 @@ class MerchantController extends Controller{
    }
    public function manageAccount(Request $request){
       $category = Category::where('status',1)->get(); 
-      return view('account.account',['categorys'=>$category]);
+      $merchant = Session::get('merchant_id');
+      $heads = Head::where('merchant',$merchant)->whereIn('account_type_id',[3,8,18])->orderBy('name')->get();
+      $isRent = function($h){ return trim((string)$h->property_address) !== ''; };
+      $lists = [
+         'employee' => $heads->where('account_type_id',8)->reject($isRent)->values(),
+         'rent'     => $heads->where('account_type_id',8)->filter($isRent)->values(),
+         'supplier' => $heads->where('account_type_id',18)->values(),
+         'bank'     => $heads->where('account_type_id',3)->values(),
+         'debtor'   => Customer::where('merchant',$merchant)->orderBy('first_name')->get(),
+      ];
+      return view('account.account',['categorys'=>$category,'lists'=>$lists]);
    }
    public function addEmployee(Request $request){
       $input =  $request->all();

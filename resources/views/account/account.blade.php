@@ -7,18 +7,28 @@
 @section('contentbody')
 <div class="row">
     <div class="col-12">
+        <h1 class="mb-2">Accounts</h1>
         <!-- Tab -->
-        <nav>
-            <div class="nav nav-tabs mb-4" id="nav-tab" role="tablist">
-                <a class="nav-item nav-link active" id="nav-employee-tab" data-bs-toggle="tab" href="#nav-employee" role="tab" aria-controls="nav-employee" aria-selected="true">Employee</a>
-                <a class="nav-item nav-link" id="nav-customer-tab" data-bs-toggle="tab" href="#nav-customer" role="tab" aria-controls="nav-customer" aria-selected="false">Supplier</a>
-                <a class="nav-item nav-link" id="nav-bank-tab" data-bs-toggle="tab" href="#nav-bank" role="tab" aria-controls="nav-bank" aria-selected="false">Bank</a>
-                <a class="nav-item nav-link" id="nav-rent-tab" data-bs-toggle="tab" href="#nav-rent" role="tab" aria-controls="nav-rent" aria-selected="false">Rent</a>
-                <a class="nav-item nav-link" id="nav-debtor-tab" data-bs-toggle="tab" href="#nav-debtor" role="tab" aria-controls="nav-debtor" aria-selected="false">Customers (Debtors)</a>
+        <style>
+.fna-acc-tabs{border:0;gap:6px;flex-wrap:wrap}
+.fna-acc-tabs .nav-link{border:1px solid var(--fna-field)!important;border-radius:999px!important;color:var(--fna-green)!important;font-weight:700;font-size:13px;padding:5px 14px;background:#fff}
+.fna-acc-tabs .nav-link.active{background:var(--fna-green)!important;border-color:var(--fna-green)!important;color:#fff!important}
+.fna-acc-tabs .cnt{font-size:11px;background:#E2EFE7;color:var(--fna-green);border-radius:999px;padding:0 7px;margin-left:4px}
+.fna-acc-tabs .active .cnt{background:#fff}
+</style>
+<nav>
+            <div class="nav nav-tabs fna-acc-tabs mb-3" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav-employee-tab" data-bs-toggle="tab" href="#nav-employee" role="tab" aria-controls="nav-employee" aria-selected="true">Employee <span class="cnt">{{ count($lists["employee"]) }}</span></a>
+                <a class="nav-item nav-link" id="nav-customer-tab" data-bs-toggle="tab" href="#nav-customer" role="tab" aria-controls="nav-customer" aria-selected="false">Supplier <span class="cnt">{{ count($lists["supplier"]) }}</span></a>
+                <a class="nav-item nav-link" id="nav-bank-tab" data-bs-toggle="tab" href="#nav-bank" role="tab" aria-controls="nav-bank" aria-selected="false">Bank <span class="cnt">{{ count($lists["bank"]) }}</span></a>
+                <a class="nav-item nav-link" id="nav-rent-tab" data-bs-toggle="tab" href="#nav-rent" role="tab" aria-controls="nav-rent" aria-selected="false">Rent <span class="cnt">{{ count($lists["rent"]) }}</span></a>
+                <a class="nav-item nav-link" id="nav-debtor-tab" data-bs-toggle="tab" href="#nav-debtor" role="tab" aria-controls="nav-debtor" aria-selected="false">Customers (Debtors) <span class="cnt">{{ count($lists["debtor"]) }}</span></a>
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-employee" role="tabpanel" aria-labelledby="nav-employee-tab">
+<div class="fna-tablebox mt-2"><table class="table"><thead><tr><th>Name</th><th>PAN</th><th>Bank A/C</th><th>Category</th></tr></thead><tbody>@forelse($lists["employee"] as $r)<tr><td>{{ $r->name }}</td><td>{{ $r->pan }}</td><td>{{ $r->account_no }}</td><td>{{ $r->category }}</td></tr>@empty<tr><td colspan="4" class="text-muted">Nothing added yet.</td></tr>@endforelse</tbody></table></div>
+<div class="fw-bold mt-3" style="font-size:14px">Add new</div>
                <div class="card card-body border-0 shadow mb-4 mt-4">
                   <form action="add-head" method="post" id="employee_form_data" name="employee_form_data" action="javascript:void(0)">
                      @csrf
@@ -126,6 +136,8 @@
                </div>
             </div>
             <div class="tab-pane fade" id="nav-customer" role="tabpanel" aria-labelledby="nav-customer-tab">
+<div class="fna-tablebox mt-2"><table class="table"><thead><tr><th>Name</th><th>PAN</th><th>Category</th></tr></thead><tbody>@forelse($lists["supplier"] as $r)<tr><td>{{ $r->name }}</td><td>{{ $r->pan }}</td><td>{{ $r->category }}</td></tr>@empty<tr><td colspan="3" class="text-muted">Nothing added yet.</td></tr>@endforelse</tbody></table></div>
+<div class="fw-bold mt-3" style="font-size:14px">Add new</div>
                <div class="card card-body border-0 shadow mb-4 mt-4">
                <form action="add-customer" method="post" id="supplier_form_data">
                   @csrf
@@ -360,6 +372,8 @@
             </div>
             </div>
             <div class="tab-pane fade" id="nav-bank" role="tabpanel" aria-labelledby="nav-bank-tab">
+<div class="fna-tablebox mt-2"><table class="table"><thead><tr><th>Bank</th><th>Account no.</th><th>IFSC</th><th>Branch</th></tr></thead><tbody>@forelse($lists["bank"] as $r)<tr><td>{{ $r->name }}</td><td>{{ $r->account_no }}</td><td>{{ $r->ifsc_code }}</td><td>{{ $r->branch_name }}</td></tr>@empty<tr><td colspan="4" class="text-muted">Nothing added yet.</td></tr>@endforelse</tbody></table></div>
+<div class="fw-bold mt-3" style="font-size:14px">Add new</div>
                <div class="card card-body border-0 shadow mb-4 mt-4">
                <form action="add-head" method="post" id="bank_form_data">
                   @csrf
@@ -465,6 +479,8 @@
             </div>
             </div>
             <div class="tab-pane fade" id="nav-rent" role="tabpanel" aria-labelledby="nav-rent-tab">
+<div class="fna-tablebox mt-2"><table class="table"><thead><tr><th>Landlord</th><th>PAN</th><th>Property</th><th>TDS</th></tr></thead><tbody>@forelse($lists["rent"] as $r)<tr><td>{{ $r->name }}</td><td>{{ $r->pan }}</td><td>{{ $r->property_address }}</td><td>{{ $r->tds_status ? ($r->tds_rate."%") : "No" }}</td></tr>@empty<tr><td colspan="4" class="text-muted">Nothing added yet.</td></tr>@endforelse</tbody></table></div>
+<div class="fw-bold mt-3" style="font-size:14px">Add new</div>
                   <div class="card card-body border-0 shadow mb-4 mt-4">
                   <form action="add-head" method="post" id="rent_form_data">
                      @csrf
@@ -541,6 +557,8 @@
                </div>
             </div>
             <div class="tab-pane fade" id="nav-debtor" role="tabpanel" aria-labelledby="nav-debtor-tab">
+<div class="fna-tablebox mt-2"><table class="table"><thead><tr><th>Name</th><th>GSTIN</th><th>City</th></tr></thead><tbody>@forelse($lists["debtor"] as $r)<tr><td>{{ $r->display_name ?: trim($r->first_name." ".$r->last_name) }}</td><td>{{ $r->gst }}</td><td>{{ $r->billing_city }}</td></tr>@empty<tr><td colspan="3" class="text-muted">Nothing added yet.</td></tr>@endforelse</tbody></table></div>
+<div class="fw-bold mt-3" style="font-size:14px">Add new</div>
                   <div class="card card-body border-0 shadow mb-4 mt-4">
                      <form action="add-customer" method="post" id="debtor_form_data">
                         @csrf
