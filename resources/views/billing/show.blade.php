@@ -55,11 +55,53 @@
      m.onchange=f;f();})();
    </script>
 @endif
-@if(count($settlements))
-   <div class="fna-section-title">Payments matched</div>
-   <div class="fna-tablebox" style="max-width:1000px"><table class="table"><thead><tr><th>Date</th><th>Bank line</th><th>How</th><th style="text-align:right">Amount</th></tr></thead><tbody>
-   @foreach($settlements as $s)<tr><td>{{ $s->st_date }}</td><td>{{ $s->remark }}</td><td>{{ ucfirst($s->method) }}</td><td style="text-align:right">{{ number_format($s->amount,2) }}</td></tr>@endforeach
+@php
+   $isReceipt = $S;
+   $rows = [];
+   foreach($notes as $n){ $rows[] = ['type'=>'note','ref'=>$n->id,'date'=>$n->pay_date,'what'=>'Cheque '.$n->cheque_no,'amount'=>$n->amount,'mode'=>'Cheque','by'=>$n->created_by,
+      'status'=>['outstanding'=>'Outstanding','cleared'=>'Cleared','dishonoured'=>'Dishonoured','reversed'=>'Reversed'][$n->status] ?? $n->status,'can'=>$n->status==='outstanding','why'=>$n->reason]; }
+   $seen = [];
+   foreach($lineSettlements as $s2){ $rows[] = ['type'=>'line','ref'=>$s2->statement_id,'date'=>$s2->st_date,'what'=>'Bank line '.$s2->voucher_no.': '.$s2->remark,'amount'=>$s2->amount,'mode'=>'Bank','by'=>$s2->chosen_by,
+      'status'=>$s2->reversed_at ? 'Reversed' : 'Matched','can'=>!$s2->reversed_at,'why'=>null]; }
+   $reasonsFor = function($mode) use ($isReceipt){ return \App\Support\ReversalReasons::list($isReceipt, $mode); };
+@endphp
+@if(count($rows))
+   <div class="fna-section-title">Payments</div>
+   <div class="fna-tablebox" style="max-width:1000px"><table class="table"><thead><tr><th>Date</th><th>Payment</th><th style="text-align:right">Amount</th><th>Status</th><th></th></tr></thead><tbody>
+   @foreach($rows as $r)
+      <tr><td>{{ date('d/m/Y', strtotime($r['date'])) }}</td><td>{{ $r['what'] }}@if($r['why'])<div class="text-muted" style="font-size:12px">Reason: {{ $r['why'] }}</div>@endif</td><td style="text-align:right">{{ number_format($r['amount'],2) }}</td>
+         <td><span class="fna-chip {{ in_array($r['status'],['Reversed','Dishonoured']) ? 'void' : ($r['status']==='Outstanding' ? 'waiting' : 'paid') }}">{{ $r['status'] }}</span></td>
+         <td>@if($r['can'] && (int)$r['by']===(int)$me)<a href="#" class="fw-bold rev-open" data-type="{{ $r['type'] }}" data-ref="{{ $r['ref'] }}" data-mode="{{ $r['mode'] }}" data-what="{{ $r['what'] }}" data-amount="{{ number_format($r['amount'],2) }}" style="text-decoration:none">Reverse &rsaquo;</a>@elseif($r['can'])<span class="text-muted" style="font-size:12px">Only {{ $isReceipt ? 'the person who recorded it' : 'the person who recorded it' }} can reverse</span>@endif</td></tr>
+   @endforeach
    </tbody></table></div>
+   <div class="fna-foot-note" style="margin-top:4px;padding-top:0">A reversal keeps the original and records who reversed it, why, and when. A cheque that has already cleared the bank cannot be reversed from here.</div>
 @endif
+<div class="fna-modal-scrim" id="revscrim" style="position:fixed;inset:0;background:rgba(1,54,2,.35);display:none;align-items:flex-start;justify-content:center;padding:60px 16px;z-index:2000">
+   <div style="background:#fff;border-radius:12px;width:100%;max-width:560px;padding:16px 18px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h1 style="font-size:18px;margin:0">Reverse this {{ $isReceipt ? 'receipt' : 'payment' }}</h1><a href="#" id="revx" style="font-weight:700;text-decoration:none">Close &#10005;</a></div>
+      <p class="text-muted mt-2" id="revwhat"></p>
+      <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/reverse') }}">@csrf
+         <input type="hidden" name="type" id="revtype"><input type="hidden" name="ref" id="revref">
+         <div id="revdatebox" style="margin-bottom:8px"><label>REVERSAL DATE</label><input type="date" class="form-control" name="rev_date" value="{{ \App\Http\Controllers\PaymentReversalController::defaultDate() }}" style="max-width:180px"><small class="text-muted">The reversal is booked on this date. It must be in the open financial year.</small></div>
+         <label>REASON</label>
+         <select class="form-select" name="reason_code" id="revreason" required></select>
+         <div id="revtextbox" style="display:none;margin-top:8px"><label>EXPLAIN (REQUIRED FOR "OTHERS")</label><textarea class="form-control" name="reason_text" rows="2" placeholder="A short, specific reason"></textarea></div>
+         <div class="mt-3 d-flex gap-2"><button class="btn btn-primary">Reverse</button><a href="#" class="btn btn-outline-primary" id="revcancel">Cancel</a></div>
+      </form>
+   </div>
+</div>
+<script>
+(function(){
+   var lists={Cheque:@json($reasonsFor('Cheque')),Bank:@json($reasonsFor('Bank'))};
+   var sc=document.getElementById('revscrim'),sel=document.getElementById('revreason'),box=document.getElementById('revtextbox');
+   function fill(mode){sel.innerHTML='<option value="">Select a reason</option>';var l=lists[mode]||lists.Bank;for(var k in l){var o=document.createElement('option');o.value=k;o.textContent=l[k];sel.appendChild(o);}box.style.display='none';}
+   sel.onchange=function(){box.style.display=sel.value==='OTHERS'?'':'none';};
+   [].forEach.call(document.querySelectorAll('.rev-open'),function(a){a.onclick=function(e){e.preventDefault();
+      document.getElementById('revtype').value=a.dataset.type;document.getElementById('revref').value=a.dataset.ref;
+      document.getElementById('revwhat').textContent=a.dataset.what+', '+a.dataset.amount;fill(a.dataset.mode);document.getElementById('revdatebox').style.display=a.dataset.type==='note'?'':'none';sc.style.display='flex';};});
+   function close(e){if(e)e.preventDefault();sc.style.display='none';}
+   document.getElementById('revx').onclick=close;document.getElementById('revcancel').onclick=close;
+})();
+</script>
 <div class="fna-foot-note">{{ $L['foot'] }}. Nothing is ever deleted: a posted {{ $L['one'] }} can only be reversed or voided.</div>
 @endsection
