@@ -8,6 +8,29 @@
 <div class="row">
    <div class="col-12 col-xl-12">
       <div class="card card-body border-0 shadow mb-4 mt-4">
+         <h2 class="mb-4">Head List</h2>
+         <table class="table table-bordered yajra-datatable">
+            <thead>
+               <tr>
+                  <th>No</th>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Account Type</th>
+                  <th>Applicable GST(%)</th>
+                  <th>Default Tax Code</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody>
+            </tbody>
+         </table>
+      </div>
+   </div>
+</div>
+<div class="fna-section-title">New account head</div>
+<div class="row">
+   <div class="col-12 col-xl-12">
+      <div class="card card-body border-0 shadow mb-4 mt-4">
          <h2 class="h5 mb-2">Account Head</h2>                               
          <form action="add-head" method="post">
             @csrf
@@ -117,28 +140,6 @@
             </div>
          </form>
       </div>      
-   </div>
-</div>
-<div class="row">
-   <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4">
-         <h2 class="mb-4">Head List</h2>
-         <table class="table table-bordered yajra-datatable">
-            <thead>
-               <tr>
-                  <th>No</th>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Account Type</th>
-                  <th>Applicable GST(%)</th>
-                  <th>Default Tax Code</th>
-                  <th>Action</th>
-               </tr>
-            </thead>
-            <tbody>
-            </tbody>
-         </table>
-      </div>
    </div>
 </div>
 <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">

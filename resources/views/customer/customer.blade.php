@@ -9,6 +9,28 @@
 <div class="row">
    <div class="col-12 col-xl-12">
       <div class="card card-body border-0 shadow mb-4 mt-4">
+         <h2 class="mb-4">Customer List</h2>
+         <table class="table table-bordered yajra-datatable">
+            <thead>
+               <tr>
+                  <th>No</th>
+                  <th>Name</th>
+                  <th>Mobile</th>
+                  <th>GSTIN</th>
+                  <th>GST Registration Type</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody>
+            </tbody>
+         </table>
+      </div>
+   </div>
+</div>
+<div class="fna-section-title">New customer</div>
+<div class="row">
+   <div class="col-12 col-xl-12">
+      <div class="card card-body border-0 shadow mb-4 mt-4">
          <h2 class="h5 mb-2">Customer Information</h2>                               
          <form action="add-customer" method="post">
             @csrf
@@ -222,27 +244,6 @@
             </div>
          </form>
       </div>      
-   </div>
-</div>
-<div class="row">
-   <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4">
-         <h2 class="mb-4">Customer List</h2>
-         <table class="table table-bordered yajra-datatable">
-            <thead>
-               <tr>
-                  <th>No</th>
-                  <th>Name</th>
-                  <th>Mobile</th>
-                  <th>GSTIN</th>
-                  <th>GST Registration Type</th>
-                  <th>Action</th>
-               </tr>
-            </thead>
-            <tbody>
-            </tbody>
-         </table>
-      </div>
    </div>
 </div>
 

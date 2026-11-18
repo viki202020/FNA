@@ -8,6 +8,30 @@
 <div class="row">
    <div class="col-12 col-xl-12">
       <div class="card card-body border-0 shadow mb-4 mt-4">
+         <h2 class="mb-4">Rule List</h2>
+         <table class="table table-bordered yajra-datatable">
+            <thead>
+               <tr>
+                  <th>No</th>
+                  <th>Rule Name</th>
+                  <th>Type</th>
+                  <th>Condition</th>
+                  <th>Content</th>
+                  <th>Debit/Credit</th>
+                  <th>Head</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody>
+            </tbody>
+         </table>
+      </div>
+   </div>
+</div>
+<div class="fna-section-title">New rule</div>
+<div class="row">
+   <div class="col-12 col-xl-12">
+      <div class="card card-body border-0 shadow mb-4 mt-4">
          <h2 class="h5 mb-2">Account Rules</h2>                               
          <form action="add-rule" method="post">
             @csrf
@@ -102,29 +126,6 @@
             </div>
          </form>
       </div>      
-   </div>
-</div>
-<div class="row">
-   <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4">
-         <h2 class="mb-4">Rule List</h2>
-         <table class="table table-bordered yajra-datatable">
-            <thead>
-               <tr>
-                  <th>No</th>
-                  <th>Rule Name</th>
-                  <th>Type</th>
-                  <th>Condition</th>
-                  <th>Content</th>
-                  <th>Debit/Credit</th>
-                  <th>Head</th>
-                  <th>Action</th>
-               </tr>
-            </thead>
-            <tbody>
-            </tbody>
-         </table>
-      </div>
    </div>
 </div>
 <div class="modal fade" id="modal-form-signup" tabindex="-1" role="dialog" aria-labelledby="modal-form-signup" aria-hidden="true">
