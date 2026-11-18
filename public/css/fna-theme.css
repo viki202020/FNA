@@ -90,3 +90,13 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fna-green)}
 .fna-tile.dark{background:var(--fna-green)}.fna-tile.dark .k,.fna-tile.dark .s{color:#CFE3D6}.fna-tile.dark .v{color:#fff}
 .fna-tile.grey{background:#EEF0EE}.fna-tile.grey .k,.fna-tile.grey .s{color:#4B5563}.fna-tile.grey .v{color:#374151}
 .fna-tablebox{border:1px solid var(--fna-line);border-radius:10px;padding:6px;overflow-x:auto}
+
+/* stray inline colours in older pages: keep to the palette */
+[style*="color:red"],[style*="color: red"],[style*="color:#e11d48"],[style*="color: #e11d48"]{color:var(--fna-dark)!important}
+[style*="color:blue"],[style*="color: blue"]{color:var(--fna-green)!important}
+.text-danger,.text-warning,.text-primary,.text-info,.text-success{color:var(--fna-green)!important}
+.text-gray-900,.text-gray-800,.text-dark{color:var(--fna-ink)!important}
+.bg-gray-800,.bg-dark{background:var(--fna-dark)!important}
+.page-item.active .page-link{background:var(--fna-green);border-color:var(--fna-green)}
+.modal-content{border-radius:10px;border:1px solid var(--fna-line)}
+.modal-title,.modal .h4{font-size:16px}
