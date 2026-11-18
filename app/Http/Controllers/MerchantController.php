@@ -26,7 +26,45 @@ use App\Support\TaxId;
 use App\Support\RuleMatcher;
 class MerchantController extends Controller{
    public function index(){
-      return view('dashboard.dashboard');
+      $merchant = Session::get('merchant_id');
+      $year = FinancialYears::current();
+      $date = "COALESCE(STR_TO_DATE(s.st_date,'%Y-%m-%d'),STR_TO_DATE(s.st_date,'%d-%m-%Y'))";
+      // the month the Sales / Purchases tiles describe: this month if it is inside the year, else the year's last month
+      $entity = FinancialYears::entity();
+      $start = $entity && $entity->financial_year_start ? \Carbon\Carbon::parse($entity->financial_year_start) : null;
+      $end = $entity && $entity->financial_year_end ? \Carbon\Carbon::parse($entity->financial_year_end) : null;
+      $month = \Carbon\Carbon::now();
+      if($start && $end && ($month->lt($start) || $month->gt($end))){ $month = $end->copy(); }
+      $effective = DB::table('statement as s')->where('s.merchant_id',$merchant)->where('s.status',1)->where('s.fyear',$year);
+      $sum = function($typeIds, $creditMinusDebit = false) use ($effective, $merchant, $date, $month){
+         $q = DB::table('statement as s')->join('head as h','h.id','=','s.head_id')
+               ->where('s.merchant_id',$merchant)->where('s.status',1)->where('s.opening',0)
+               ->whereIn('h.account_type_id',$typeIds)
+               ->whereRaw("$date >= ?",[$month->copy()->startOfMonth()->format('Y-m-d')])
+               ->whereRaw("$date <= ?",[$month->copy()->endOfMonth()->format('Y-m-d')]);
+         $row = $q->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
+         return $creditMinusDebit ? ($row->c - $row->d) : ($row->d - $row->c);
+      };
+      $bankRow = DB::table('statement as s')->join('head as h','h.id','=','s.head_id')
+               ->where('s.merchant_id',$merchant)->where('s.status',1)->where('s.fyear',$year)->where('h.account_type_id',3)
+               ->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
+      $bankCount = DB::table('head')->where('account_type_id',3)->where('status',1)->count();
+      $totals = (clone $effective)->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
+      $uncategorised = DB::table('statement')->where('merchant_id',$merchant)->where('status',0)->where('opening',0)
+               ->where(function($q) use ($year){ $q->whereNull('fyear')->orWhere('fyear',$year); })->count();
+      $drafts = DB::table('vouchers')->where('merchant_id',$merchant)->where('status','draft')->where('fyear',$year)->count();
+      $recent = DB::table('vouchers as v')
+               ->leftJoinSub(DB::table('statement')->whereNotNull('voucher_id')->select('voucher_id',DB::raw('ROUND(SUM(debit+0),2) as amount'),DB::raw('MIN(remark) as remark'))->groupBy('voucher_id'),'a','a.voucher_id','=','v.id')
+               ->where('v.merchant_id',$merchant)->where('v.fyear',$year)
+               ->orderByDesc('v.id')->limit(5)
+               ->get(['v.voucher_no','v.voucher_date','v.status','v.narration','a.amount','a.remark']);
+      return view('dashboard.dashboard',[
+         'year'=>$year, 'monthName'=>$month->format('M'),
+         'bank'=>round($bankRow->d - $bankRow->c,2), 'bankCount'=>$bankCount,
+         'sales'=>round($sum([9],true),2), 'purchases'=>round($sum([5,6]),2),
+         'uncategorised'=>$uncategorised, 'drafts'=>$drafts, 'recent'=>$recent,
+         'balanced'=>abs($totals->d - $totals->c) < 0.005,
+      ]);
    }
    public function entity(Request $request){
       if($request->ajax()) {

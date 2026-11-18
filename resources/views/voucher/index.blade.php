@@ -5,62 +5,71 @@
    @include('layout.sidebar')
 @endsection
 @section('contentbody')
-@include('voucher._style')
-<div class="row"><div class="col-12 col-xl-12">
-<div class="card card-body border-0 shadow mb-4 mt-4 vch-page" style="overflow:auto;">
-   <h2 class="mb-3">Vouchers</h2>
-   <form method="get" class="row g-2 mb-3 align-items-end">
-      <div class="col-md-3"><label>Search (voucher number or narration)</label>
-         <input type="text" name="q" value="{{ $q }}" class="form-control" placeholder="e.g. SBV-00012 or bank charges"></div>
-      <div class="col-md-2"><label>Financial year</label>
-         <select name="year" class="form-select">
-            <option value="all" @if($selected_year=='all') selected @endif>All years</option>
-            @foreach($year_options as $y)
-               <option value="{{ $y }}" @if($y==$selected_year) selected @endif>{{ $y }}@if(!\App\Support\FinancialYears::isOpen($y)) (closed)@endif</option>
-            @endforeach
-         </select></div>
-      <div class="col-md-2"><label>Type</label>
-         <select name="series" class="form-select"><option value="">All</option>
-            @foreach($series_options as $s)
-               <option value="{{ $s }}" @if($s==$series) selected @endif>{{ $s }} - {{ \App\Http\Controllers\VoucherController::seriesLabel($s) }}</option>
-            @endforeach
-         </select></div>
-      <div class="col-md-2"><label>Status</label>
-         <select name="status" class="form-select"><option value="">All</option>
-            @foreach(['draft'=>'Draft','posted'=>'Posted','reversed'=>'Reversed','void'=>'Void'] as $k=>$n)
-               <option value="{{ $k }}" @if($k==$status) selected @endif>{{ $n }}</option>
-            @endforeach
-         </select></div>
-      <div class="col-md-3"><button class="btn btn-primary" type="submit">Search</button>
-         <a class="btn btn-outline-secondary" href="{{ url('/merchant/vouchers') }}">Clear</a></div>
-   </form>
-   <table class="vch">
-      <thead><tr>
-         <th>Voucher #</th><th>Date</th><th>Type</th><th>Narration</th><th>Status</th>
-         <th class="num">Lines</th><th class="num">Debit</th><th class="num">Credit</th><th>Check</th>
-      </tr></thead>
-      <tbody>
-      @forelse($vouchers as $v)
-         <tr>
-            <td><a class="vlink" href="{{ url('/merchant/voucher/'.$v->voucher_no) }}">{{ $v->voucher_no }}</a>@if($v->version>1) <small>(v{{ $v->version }})</small>@endif</td>
-            <td>{{ $v->voucher_date }}</td>
-            <td>{{ \App\Http\Controllers\VoucherController::seriesLabel($v->series) }}</td>
-            <td>{{ \Illuminate\Support\Str::limit($v->narration ?: $v->first_remark, 70) }}</td>
-            <td><span class="badge-s badge-{{ $v->status }}">{{ ucfirst($v->status) }}</span></td>
-            <td class="num">{{ $v->line_count }}</td>
-            <td class="num">{{ number_format($v->total_debit,2) }}</td>
-            <td class="num">{{ number_format($v->total_credit,2) }}</td>
-            <td>@if(abs($v->total_debit-$v->total_credit)>0.005)<span class="vch-warn">Out by {{ number_format(abs($v->total_debit-$v->total_credit),2) }}</span>@elseif($v->open_lines>0)<span class="vch-warn">{{ $v->open_lines }} uncategorised</span>@else OK @endif</td>
-         </tr>
-      @empty
-         <tr><td colspan="9" style="text-align:center;padding:24px;">No vouchers match.</td></tr>
-      @endforelse
-      </tbody>
-   </table>
-   <div class="mt-3" style="display:flex;gap:12px;align-items:center;">
-      @if($vouchers->previousPageUrl())<a class="btn btn-outline-secondary btn-sm" href="{{ $vouchers->previousPageUrl() }}">&laquo; Previous</a>@endif
-      <span>Page {{ $vouchers->currentPage() }} of {{ $vouchers->lastPage() }} &middot; {{ $vouchers->total() }} vouchers</span>
-      @if($vouchers->nextPageUrl())<a class="btn btn-outline-secondary btn-sm" href="{{ $vouchers->nextPageUrl() }}">Next &raquo;</a>@endif
+@php
+   $types = ['SBV'=>'Bank statement line (SBV)','UJV'=>'Uploaded journal (UJV)','MJV'=>'Manual journal (MJV)','RJV'=>'Reversal (RJV)','SRV'=>'Auto reversal (SRV)','SIV'=>'Sales invoice (SIV)','OLD'=>'Older journal entry'];
+   $statuses = [''=>'All','draft'=>'Drafts','posted'=>'Posted','reversed'=>'Reversed','void'=>'Voids'];
+@endphp
+<form method="get" id="vform" style="display:flex;flex-direction:column;min-height:calc(100vh - 40px)">
+   <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h1 style="margin:0">All Vouchers</h1>
+      <div style="display:flex;align-items:center;gap:10px">
+         <label style="display:inline-flex;align-items:center;gap:6px;margin:0">Financial year
+            <select name="year" class="form-select" style="width:auto;font-weight:700;color:var(--fna-green)" onchange="document.getElementById('vform').submit()">
+               <option value="all" @if($selected_year=='all') selected @endif>All years</option>
+               @foreach($year_options as $y)
+                  <option value="{{ $y }}" @if($y==$selected_year) selected @endif>{{ $y }}@if(!\App\Support\FinancialYears::isOpen($y)) (closed)@endif</option>
+               @endforeach
+            </select>
+         </label>
+      </div>
    </div>
-</div></div></div>
+   <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">
+      <div class="fna-radios" role="radiogroup" aria-label="Show vouchers by status">
+         @foreach($statuses as $k=>$n)
+            <label class="{{ (string)$k===(string)$status ? 'on' : '' }}"><input type="radio" name="status" value="{{ $k }}" @if((string)$k===(string)$status) checked @endif onchange="document.getElementById('vform').submit()"> {{ $n }}</label>
+         @endforeach
+      </div>
+      <label style="display:inline-flex;align-items:center;gap:6px;margin:0 0 0 6px">Type
+         <select name="series" class="form-select" style="width:auto;font-weight:700;color:var(--fna-green)" onchange="document.getElementById('vform').submit()">
+            <option value="">All types</option>
+            @foreach($types as $k=>$n)<option value="{{ $k }}" @if($k===$series) selected @endif>{{ $n }}</option>@endforeach
+         </select>
+      </label>
+      <div style="margin-left:auto;display:flex;align-items:stretch;border:1px solid var(--fna-field);border-radius:8px;overflow:hidden;min-width:300px;flex:0 1 400px">
+         <select name="in" aria-label="Search in" style="font:inherit;font-weight:700;color:var(--fna-green);background:var(--fna-band);border:0;border-right:1px solid var(--fna-field);padding:4px 8px">
+            @foreach(['all'=>'All fields','number'=>'Number','amount'=>'Amount','narration'=>'Narration'] as $k=>$n)<option value="{{ $k }}" @if($k===$in) selected @endif>{{ $n }}</option>@endforeach
+         </select>
+         <input type="search" name="q" value="{{ $q }}" aria-label="Search text" placeholder="e.g. 0033, MJV0033, 35000, 10000-50000, bank charges" style="flex:1;min-width:0;border:0;outline:0;padding:4px 10px;font:inherit">
+         <button type="submit" class="btn btn-success" style="border-radius:0;padding:4px 12px">Search</button>
+      </div>
+   </div>
+   <div class="fna-tablebox">
+      <table class="table">
+         <thead><tr><th>Date</th><th>Voucher #</th><th>Type</th><th>Narration</th><th>Status</th><th style="text-align:right">Amount</th><th>Check</th></tr></thead>
+         <tbody>
+         @forelse($vouchers as $v)
+            <tr>
+               <td>{{ $v->voucher_date }}</td>
+               <td><a href="{{ url('/merchant/voucher/'.$v->voucher_no) }}" style="font-weight:700;text-decoration:none">{{ $v->voucher_no }}</a>@if($v->version>1) <small>(v{{ $v->version }})</small>@endif</td>
+               <td style="color:var(--fna-muted)">{{ \App\Http\Controllers\VoucherController::seriesLabel($v->series) }}</td>
+               <td>{{ \Illuminate\Support\Str::limit($v->narration ?: $v->first_remark, 70) }}</td>
+               <td><span class="fna-chip {{ $v->status }}">{{ ucfirst($v->status) }}</span></td>
+               <td style="text-align:right;font-variant-numeric:tabular-nums">{{ number_format($v->total_debit,2) }}</td>
+               <td>@if(abs($v->total_debit-$v->total_credit)>0.005)<strong>! Out by {{ number_format(abs($v->total_debit-$v->total_credit),2) }}</strong>@elseif($v->open_lines>0){{ $v->open_lines }} uncategorised @else <span style="color:var(--fna-muted)">OK</span> @endif</td>
+            </tr>
+         @empty
+            <tr><td colspan="7" style="text-align:center;padding:18px;color:var(--fna-muted)">No vouchers match.</td></tr>
+         @endforelse
+         </tbody>
+      </table>
+   </div>
+   <div class="fna-foot-note" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between">
+      <span>{{ $vouchers->total() }} {{ $vouchers->total()==1 ? 'voucher' : 'vouchers' }} shown · {{ $summary['total'] }} in the selected year · {{ $summary['drafts'] }} {{ $summary['drafts']==1 ? 'draft' : 'drafts' }}</span>
+      <span>
+         @if($vouchers->previousPageUrl())<a href="{{ $vouchers->previousPageUrl() }}">&lsaquo; Previous</a>@endif
+         Page {{ $vouchers->currentPage() }} of {{ $vouchers->lastPage() }}
+         @if($vouchers->nextPageUrl())<a href="{{ $vouchers->nextPageUrl() }}">Next &rsaquo;</a>@endif
+      </span>
+   </div>
+</form>
 @endsection

@@ -56,20 +56,47 @@ class VoucherController extends Controller
         if ($year !== 'all') {
             $query->where('v.fyear', $year);
         }
+        // what to search in: all fields, number, amount or narration
+        $in = $request->input('in', 'all');
         if ($q !== '') {
-            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
-            $query->where(function ($w) use ($like) {
-                $w->where('v.voucher_no', 'like', $like)
-                  ->orWhere('v.narration', 'like', $like)
-                  ->orWhere('v.reference', 'like', $like)
-                  ->orWhereExists(function ($e) use ($like) {
-                      $e->select(DB::raw(1))->from('statement as x')
-                        ->whereColumn('x.voucher_id', 'v.id')->where('x.remark', 'like', $like);
-                  });
+            $query->where(function ($w) use ($q, $in) {
+                $first = true;
+                $add = function ($cb) use ($w, &$first) { $first ? $w->where($cb) : $w->orWhere($cb); $first = false; };
+                if (in_array($in, ['all', 'number'])) {
+                    $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
+                    $digits = ltrim(preg_replace('/\D/', '', $q), '0');
+                    $add(function ($n) use ($like, $digits, $q) {
+                        $n->where('v.voucher_no', 'like', $like)->orWhere('v.reference', 'like', $like);
+                        // "33" finds MJV0033 and SBV-00033: digits at the end, ignoring leading zeros
+                        if ($digits !== '' && ctype_digit(preg_replace('/\D/', '', $q)) && $q === preg_replace('/\D/', '', $q)) {
+                            $n->orWhereRaw("v.voucher_no REGEXP ?", ['(^|[^0-9])0*' . $digits . '$']);
+                        }
+                    });
+                }
+                if (in_array($in, ['all', 'amount'])) {
+                    $num = str_replace([',', ' '], '', $q);
+                    if (preg_match('/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/', $num, $m)) {
+                        $add(function ($n) use ($m) { $n->whereBetween('a.total_debit', [(float) $m[1], (float) $m[2]]); });
+                    } elseif (is_numeric($num)) {
+                        $add(function ($n) use ($num) { $n->whereRaw('ABS(a.total_debit - ?) < 0.005', [(float) $num]); });
+                    }
+                }
+                if (in_array($in, ['all', 'narration'])) {
+                    $like2 = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
+                    $add(function ($n) use ($like2) {
+                        $n->where('v.narration', 'like', $like2)
+                          ->orWhereExists(function ($e) use ($like2) {
+                              $e->select(DB::raw(1))->from('statement as x')
+                                ->whereColumn('x.voucher_id', 'v.id')->where('x.remark', 'like', $like2);
+                          });
+                    });
+                }
+                if ($first) { $w->whereRaw('1 = 0'); } // nothing searchable in the text (e.g. letters in Amount)
             });
         }
         if ($series !== '') {
-            $query->where('v.series', $series);
+            if ($series === 'OLD') { $query->where(function ($w) { $w->whereNull('v.series')->orWhere('v.series', ''); }); }
+            else { $query->where('v.series', $series); }
         }
         if ($status !== '') {
             $query->where('v.status', $status);
@@ -80,9 +107,14 @@ class VoucherController extends Controller
         $year_options = FinancialYears::options($years, $year === 'all' ? FinancialYears::current() : $year, true);
         $series_options = DB::table('vouchers')->where('merchant_id', $merchant)->whereNotNull('series')->distinct()->pluck('series');
 
+        $base = DB::table('vouchers')->where('merchant_id', $merchant);
+        if ($year !== 'all') { $base->where('fyear', $year); }
+        $summary = ['total' => (clone $base)->count(), 'drafts' => (clone $base)->where('status', 'draft')->count()];
+
         return view('voucher.index', [
+            'summary' => $summary,
             'vouchers' => $vouchers, 'year_options' => $year_options, 'selected_year' => $year,
-            'q' => $q, 'series' => $series, 'status' => $status, 'series_options' => $series_options,
+            'q' => $q, 'in' => $in, 'series' => $series, 'status' => $status, 'series_options' => $series_options,
         ]);
     }
 

@@ -1,0 +1,92 @@
+/*
+ * FNA theme: a quiet, compact look. Greens and greys only, Roboto, small type,
+ * no side panels. Loaded after volt.css, so these rules win over the template.
+ */
+:root{
+  --fna-ink:#14231A; --fna-muted:#5B6B62; --fna-line:#E3ECE6; --fna-tint:#F3F8F5;
+  --fna-band:#E2EFE7; --fna-green:#0B5A2E; --fna-dark:#013602; --fna-mid:#3E7C58;
+  --fna-grey:#4B5563; --fna-field:#BFD3C7;
+}
+html,body{font-family:'Roboto',sans-serif;font-size:13px;color:var(--fna-ink);background:#fff}
+body{line-height:1.4}
+a{color:var(--fna-green)} a:hover{color:var(--fna-dark)}
+h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6{font-family:'Roboto',sans-serif;color:var(--fna-ink);font-weight:700}
+h1,.h1{font-size:20px} h2,.h2{font-size:18px} h3,.h3{font-size:16px} h4,.h4,h5,.h5{font-size:14px}
+.card h2.mb-4,.card h2.mb-2,h2.h5{font-size:18px;margin-bottom:.6rem!important}
+
+/* page shell */
+.content{padding:16px 22px!important;background:#fff}
+@media (min-width:992px){ .content{margin-left:188px!important} }
+
+/* sidebar */
+.fna-sidebar{width:188px!important;background:#fff!important;border-right:1px solid var(--fna-line);padding:14px 10px;overflow-y:auto;z-index:1030}
+.fna-sidebar .fna-brand{background:var(--fna-dark);color:#fff;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-weight:700;font-size:16px;line-height:1.15}
+.fna-sidebar .fna-brand small{display:block;font-size:11px;font-weight:500;opacity:.9}
+.fna-sidebar .fna-link{display:block;color:#46574D;text-decoration:none;padding:5px 10px;border-radius:8px;font-size:13px;font-weight:500}
+.fna-sidebar .fna-link:hover{background:var(--fna-tint);color:var(--fna-dark)}
+.fna-sidebar .fna-link.active{background:var(--fna-green);color:#fff;font-weight:700}
+.fna-sidebar .fna-head{color:var(--fna-muted);font-size:10px;font-weight:700;letter-spacing:1px;padding:10px 10px 2px;text-transform:uppercase}
+.fna-sidebar .fna-foot{margin-top:14px;padding-top:8px;border-top:1px solid var(--fna-line)}
+
+/* tables (plain and DataTables) */
+.table{font-size:14px;color:var(--fna-ink);margin-bottom:0}
+.table>:not(caption)>*>*{padding:6px 10px;border-color:var(--fna-line);vertical-align:middle}
+.table thead th,table.dataTable thead th{background:var(--fna-band)!important;color:var(--fna-green)!important;font-size:12px;font-weight:700;border:0!important;padding:7px 10px!important;text-transform:none}
+.table thead th:first-child{border-radius:6px 0 0 6px} .table thead th:last-child{border-radius:0 6px 6px 0}
+.table-bordered>:not(caption)>*{border-width:0 0 1px}.table-bordered>:not(caption)>*>*{border-width:0}
+table.dataTable.no-footer{border-bottom:0}
+.table-striped>tbody>tr:nth-of-type(odd)>*{background:transparent;color:inherit}
+.dataTables_wrapper,.dataTables_wrapper .dataTables_info,.dataTables_wrapper label{font-size:12px;color:var(--fna-muted)}
+.dataTables_wrapper .dataTables_filter input,.dataTables_wrapper .dataTables_length select{border:1px solid var(--fna-field);border-radius:6px;padding:3px 8px;font-size:13px}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{background:var(--fna-green)!important;color:#fff!important;border:0;border-radius:6px}
+
+/* cards: flat, thin outline */
+.card{border:1px solid var(--fna-line)!important;border-radius:10px!important;box-shadow:none!important}
+.shadow,.shadow-sm{box-shadow:none!important}
+.card-body{padding:12px 14px}
+
+/* forms */
+.form-control,.form-select,select.form-control{font-size:13px;padding:5px 9px;border:1px solid var(--fna-field);border-radius:6px;color:var(--fna-ink);min-height:0;height:auto}
+.form-select{padding:3px 28px 3px 8px!important}
+.form-control:focus,.form-select:focus{border-color:var(--fna-green);box-shadow:0 0 0 3px rgba(11,90,46,.12)}
+label,.form-label{font-size:11px;font-weight:700;color:#3E5A48}
+input[type=checkbox],input[type=radio]{accent-color:var(--fna-green)}
+
+/* buttons: one green, one grey */
+.btn{font-size:13px;font-weight:700;border-radius:6px;padding:6px 14px}
+.btn-sm{padding:3px 10px;font-size:12px}
+.btn-primary,.btn-success,.btn-info,.btn-gray-800,.btn-secondary{background:var(--fna-green)!important;border-color:var(--fna-green)!important;color:#fff!important}
+.btn-primary:hover,.btn-success:hover,.btn-info:hover,.btn-gray-800:hover,.btn-secondary:hover{background:var(--fna-dark)!important;border-color:var(--fna-dark)!important}
+.btn-danger,.btn-warning,.btn-outline-danger{background:#fff!important;border:1px solid var(--fna-grey)!important;color:#374151!important}
+.btn-outline-primary,.btn-outline-success,.btn-outline-secondary{background:#fff!important;border:1px solid var(--fna-green)!important;color:var(--fna-green)!important}
+
+/* alerts and badges stay in the palette */
+.alert{font-size:13px;padding:8px 12px;border-radius:8px}
+.alert-success,.alert-info{background:var(--fna-band);border:1px solid var(--fna-field);color:var(--fna-green)}
+.alert-danger,.alert-warning{background:var(--fna-tint);border:1px solid var(--fna-grey);color:var(--fna-ink)}
+.badge{font-weight:700}
+.bg-success{background:var(--fna-green)!important}.bg-danger,.bg-warning{background:var(--fna-grey)!important}
+
+/* status chips (used on voucher, rule and invoice screens) */
+.fna-chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.fna-chip.posted,.fna-chip.active,.fna-chip.paid,.fna-chip.auto{background:#DDEDE3;color:var(--fna-green)}
+.fna-chip.draft,.fna-chip.off,.fna-chip.none{background:var(--fna-grey);color:#fff}
+.fna-chip.reversed,.fna-chip.waiting,.fna-chip.overdue{background:#fff;color:var(--fna-mid);border:1px solid var(--fna-mid)}
+.fna-chip.void{background:#E5E7E5;color:#6B726D;text-decoration:line-through}
+.fna-chip.chosen{background:#CFE3D6;color:var(--fna-dark)}
+
+/* small reusable pieces */
+.fna-radios{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fna-radios label{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:999px;border:1px solid var(--fna-field);color:var(--fna-green);font-weight:700;font-size:12px;margin:0;cursor:pointer}
+.fna-radios label.on{background:var(--fna-green);border-color:var(--fna-green);color:#fff}
+.fna-radios input{margin:0}
+.fna-foot-note{margin-top:auto;padding-top:10px;font-size:12px;color:var(--fna-muted)}
+.fna-tiles{display:flex;flex-wrap:nowrap;gap:8px;margin-bottom:14px}
+.fna-tile{flex:1 1 0;min-width:0;border-radius:8px;padding:7px 10px;background:var(--fna-band)}
+.fna-tile .k{font-size:11px;color:#3E5A48}
+.fna-tile .v{font-size:clamp(13px,1.3vw,17px);font-weight:700;color:var(--fna-green);white-space:nowrap}
+.fna-tile .s{font-size:10px;color:#3E5A48}
+.fna-tile.deep{background:#CFE3D6}.fna-tile.deep .v{color:var(--fna-dark)}
+.fna-tile.dark{background:var(--fna-green)}.fna-tile.dark .k,.fna-tile.dark .s{color:#CFE3D6}.fna-tile.dark .v{color:#fff}
+.fna-tile.grey{background:#EEF0EE}.fna-tile.grey .k,.fna-tile.grey .s{color:#4B5563}.fna-tile.grey .v{color:#374151}
+.fna-tablebox{border:1px solid var(--fna-line);border-radius:10px;padding:6px;overflow-x:auto}
