@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MerchantController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\RuleConflictController;
@@ -75,7 +76,14 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::post('/merchant/add-rent', [MerchantController::class,'addRent']);
    Route::get('/merchant/manage-product', [MerchantController::class,'manageProduct']);
    Route::post('/merchant/add-product', [MerchantController::class,'addProduct']);
-   Route::get('/merchant/manage-invoice', [MerchantController::class,'manageInvoice']);
+   Route::get('/merchant/manage-invoice', [BillingController::class,'index']);
+   Route::get('/merchant/manage-bill', [BillingController::class,'index']);
+   Route::get('/merchant/invoices/new', [BillingController::class,'create']);
+   Route::get('/merchant/bills/new', [BillingController::class,'create']);
+   Route::post('/merchant/billing/save', [BillingController::class,'store']);
+   Route::get('/merchant/invoices/{id}', [BillingController::class,'show'])->whereNumber('id');
+   Route::get('/merchant/bills/{id}', [BillingController::class,'show'])->whereNumber('id');
+   Route::post('/merchant/billing/{id}/post', [BillingController::class,'post'])->whereNumber('id');
    Route::get('/merchant/upload-expencess-csv', [MerchantController::class,'uploadExpencessCSV']);
    Route::post('/merchant/import-expencess-csv', [MerchantController::class, 'importExpencessCsv']);
    Route::get('/merchant/balance-sheet/{year?}', [MerchantController::class,'balanceSheet']);
