@@ -101,3 +101,17 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fna-green)}
 .modal-content{border-radius:10px;border:1px solid var(--fna-line)}
 .modal-title,.modal .h4{font-size:16px}
 .fna-section-title{font-weight:700;font-size:14px;margin:14px 0 2px}
+
+/* report pages (balance sheet, profit and loss): quiet outline lists */
+.fna-report ul{list-style:none;padding-left:0;margin:0 0 8px}
+.fna-report ul ul{padding-left:18px;margin:0}
+.fna-report ul>h3,.fna-report ul>h4{background:var(--fna-band);color:var(--fna-green);font-size:13px;font-weight:700;padding:7px 10px;border-radius:6px;margin:8px 0 2px}
+.fna-report li{font-size:14px;padding:5px 10px;border-top:1px solid var(--fna-line);overflow:hidden}
+.fna-report ul ul li{font-size:14px;border-top:1px solid var(--fna-line)}
+.fna-report a,.fna-report a[style*="color"]{color:var(--fna-ink)!important;text-decoration:none;font-weight:500}
+.fna-report a:hover{color:var(--fna-green)!important;text-decoration:underline}
+.fna-report .fna-title{text-align:left;font-size:20px;font-weight:700;margin:0 0 2px}
+.fna-report .fna-sub{text-align:left;font-size:12px;color:var(--fna-muted);margin:0 0 10px}
+.fna-report div[style*="#eafaf1"],.fna-report div[style*="#fdecea"]{border-radius:8px!important;font-size:12px!important;background:var(--fna-tint)!important;color:var(--fna-green)!important;border:1px solid var(--fna-field)!important;font-weight:700}
+.fna-report div[style*="#fdecea"]{color:#fff!important;background:var(--fna-grey)!important;border-color:var(--fna-grey)!important}
+.fna-report li span[style*="margin-right"]{margin-right:0!important}

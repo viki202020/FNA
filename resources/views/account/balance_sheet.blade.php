@@ -7,16 +7,16 @@
 @section('contentbody')
 <div class="row">
    <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4">
+      <div class="card card-body border-0 shadow mb-4 mt-2 fna-report">
          <select class="form-control" style="width:auto;min-width:150px;" id="financial_year">
             @foreach($year_options as $y)
                <option value="{{ $y }}" @if($selected_year==$y) selected @endif>{{ $y }}</option>
             @endforeach
          </select>
          @include('account._year_controls')
-         <p style="text-align: center;font-size: 26px;"> @if($entity) {{$entity->name}} @endif</p>
-         <p style="text-align: center;font-size: 12px;">@if($entity) ({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}}) @endif</p>
-         <h1 class="h3 mb-2" style="text-align: center;">Balance Sheet as on {{$financial_year}}</h3>            
+         <p class="fna-title"> @if($entity) {{$entity->name}} @endif</p>
+         <p class="fna-sub">@if($entity) ({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}}) @endif</p>
+         <h1 class="fna-title" style="font-size:16px">Balance Sheet as on {{$financial_year}}</h1>            
          <div class="row">
             <div class="col-md-12 mb-3">                  
                @foreach($account_type_parents as $account_type_parent)

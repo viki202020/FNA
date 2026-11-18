@@ -7,7 +7,7 @@
 @section('contentbody')
 <div class="row">
    <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4">
+      <div class="card card-body border-0 shadow mb-4 mt-2 fna-report">
          @if($entity)
          <select class="form-control" style="width:auto;min-width:150px;" id="financial_year">
             @foreach($year_options as $y)
@@ -15,9 +15,9 @@
             @endforeach
          </select>
          @include('account._year_controls')
-         <p style="text-align: center;font-size: 26px;">{{$entity->name}}</p>
-         <p style="text-align: center;font-size: 12px;">({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}})</p>
-         <h5 class="h1 mb-2" style="text-align: center;">@php
+         <p class="fna-title">{{$entity->name}}</p>
+         <p class="fna-sub">({{$entity->address}},{{$entity->city}},{{$entity->state}},{{$entity->pincode}})</p>
+         <h5 class="fna-title" style="font-size:16px">@php
             $chosen_year = collect($entity_financial_year)->firstWhere('financial_year',$selected_year);
             $period_start = $chosen_year ? $chosen_year->start_year : $entity->financial_year_start;
             $period_end = $chosen_year ? $chosen_year->end_year : $entity->financial_year_end;
@@ -25,7 +25,7 @@
          Trial Balance for the period  {{date('d-m-Y',strtotime($period_start))}} to {{date('d-m-Y',strtotime($period_end))}}</h5>
          @endif
          <?php date_default_timezone_set("Asia/Kolkata");   //India time (GMT+5:30)?>
-         <p style="text-align: center;">(Generated on {{date('D-M-Y G:i:s')}})</p>
+         <p class="fna-sub">(Generated on {{date('D-M-Y G:i:s')}})</p>
          <!-- <p>Custom Period? <input type="date" id="from"></p> -->
          <div class="row">
             <div class="col-md-12 mb-3">

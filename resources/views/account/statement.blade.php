@@ -16,7 +16,7 @@
    <div class="col-12 col-xl-12">
       <button class="btn btn-info" onclick="history.back()">Back</button>
       <div class="card card-body border-0 shadow mb-4 mt-4" style="overflow: scroll;">
-         <h2 class="mb-4" style="text-align: center;">Bank Statement</h2>
+         <h2 class="mb-3">Bank Statement</h2>
          <div style="display:flex; gap:12px; flex-wrap:wrap;">
             <select id="bank" class="form-control" style="max-width:380px;">
                @foreach($bankname as $bank1)

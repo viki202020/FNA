@@ -12,9 +12,7 @@
     margin-top: 18px;background-color: #c9143ffa;
 ">Back</button>
       <div class="card card-body border-0 shadow mb-4 mt-4" style="overflow: scroll;">
-         <h2 class="h3 mb-2" style="
-    text-align: center;
-"> Ledger for : {{$name}}</h2> 
+         <h2 class="mb-2"> Ledger for : {{$name}}</h2> 
          <div style="margin:6px 0 10px 0;">
             <label for="ledger_year"><strong>Financial year</strong></label>
             <select id="ledger_year" class="form-select" style="width:auto;display:inline-block;margin-left:8px;"
