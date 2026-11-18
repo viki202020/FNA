@@ -88,7 +88,7 @@ class MerchantController extends Controller{
          $financial_year_start = date('Y')."-04-01";
          $financial_year_end = (date('Y') + 1)."-03-31";
       }
-      return view('entity.entity',['entity_count'=>count($entity),"financial_year_start"=>$financial_year_start,"financial_year_end"=>$financial_year_end]);
+      return view('entity.entity',['company'=>$entity->first(),'entity_count'=>count($entity),"financial_year_start"=>$financial_year_start,"financial_year_end"=>$financial_year_end]);
    }
    public function login(Request $req){
       $user_name = $req->input('username');

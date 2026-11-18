@@ -115,3 +115,4 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fna-green)}
 .fna-report div[style*="#eafaf1"],.fna-report div[style*="#fdecea"]{border-radius:8px!important;font-size:12px!important;background:var(--fna-tint)!important;color:var(--fna-green)!important;border:1px solid var(--fna-field)!important;font-weight:700}
 .fna-report div[style*="#fdecea"]{color:#fff!important;background:var(--fna-grey)!important;border-color:var(--fna-grey)!important}
 .fna-report li span[style*="margin-right"]{margin-right:0!important}
+.fna-err{color:var(--fna-dark);font-size:12px;margin-top:3px}
