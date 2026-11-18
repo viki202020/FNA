@@ -5,6 +5,8 @@
       ['Vouchers', '/merchant/vouchers', ['merchant/vouchers*', 'merchant/voucher/*']],
       ['Ledgers', '/merchant/ledgers', ['merchant/ledgers*', 'merchant/ledger-by-head/*']],
       ['Bank statement', '/merchant/statement', ['merchant/statement*']],
+      ['Cheque register', '/merchant/cheque-register', ['merchant/cheque-register*']],
+      ['Bank reconciliation', '/merchant/bank-reconciliation', ['merchant/bank-reconciliation*']],
       ['head', 'Fin statements'],
       ['Trial balance', '/merchant/trial-balance', ['merchant/trial-balance*']],
       ['Balance sheet', '/merchant/balance-sheet', ['merchant/balance-sheet*']],

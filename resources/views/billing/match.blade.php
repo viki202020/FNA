@@ -59,7 +59,8 @@ $(function(){
    var cur=null;
    function inr(n){return Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
    function upd(){
-      var sel=0,n=0;$('#cands input:checked').each(function(){sel+=cur.candidates[+$(this).data('i')].balance;n++;});
+      if($('#cands input[name=chq]:checked').length){$('#sum').removeClass('bad').html('<span>&#10003; Clears this cheque, same amount as the bank line</span><span>1 selected</span>');$('#go').prop('disabled',false);return;}
+      var sel=0,n=0;$('#cands input:checked').not('[name=chq]').each(function(){sel+=cur.candidates[+$(this).data('i')].balance;n++;});
       var s=$('#sum'),go=$('#go'); var left=Math.round((cur.amount-sel)*100)/100;
       if(!n){s.addClass('bad').html('<span>Nothing ticked</span><span>Money '+inr(cur.amount)+'</span>');go.prop('disabled',true);}
       else if(left>0.004){s.addClass('bad').html('<span>Ticked '+inr(sel)+' is less than the money ('+inr(cur.amount)+')</span><span>Tick more</span>');go.prop('disabled',true);}
@@ -72,18 +73,23 @@ $(function(){
          $('#mt').text(r.in?'Which invoice did this money pay?':'Which bill did this payment settle?');
          $('#ml').html('<span>Date <b>'+r.date+'</b></span><span>Amount <b>'+inr(r.amount)+'</b></span><span style="flex:1 1 100%">Bank wording <b></b></span>');
          $('#ml b').last().text(r.remark||'');
-         var h='';$.each(r.candidates,function(i,c){
+         var h='';$.each(r.cheques||[],function(i,c){
+            h+='<label class="fna-cand"><input type="radio" name="chq" data-chq="'+c.id+'"><span><b></b><div class="fna-why"></div></span><span style="text-align:right">'+c.date+'</span><span style="text-align:right">'+inr(c.amount)+'</span><span><span class="fna-chip posted">Cheque</span></span></label>';});
+         $.each(r.candidates,function(i,c){
             h+='<label class="fna-cand"><input type="checkbox" data-i="'+i+'" value="'+c.id+'" '+''+'><span><b></b><div class="fna-why"></div></span><span style="text-align:right">Due '+c.due+'</span><span style="text-align:right">'+inr(c.balance)+'</span><span><span class="fna-chip '+(c.exact?'posted':'waiting')+'">'+(c.exact?'Same amount':'Possible')+'</span></span></label>';});
          $('#cands').html(h);
-         $.each(r.candidates,function(i,c){var l=$('#cands label').eq(i);l.find('b').text(c.number+' · '+c.party);l.find('.fna-why').text(c.why);});
+         var nc=(r.cheques||[]).length;
+         $.each(r.cheques||[],function(i,c){var l=$('#cands label').eq(i);l.find('b').text('Cheque '+c.cheque_no+' · '+c.party+' ('+c.doc+')');l.find('.fna-why').text(c.why+'. Clears the cheque; no new entry is made.');});
+         $.each(r.candidates,function(i,c){var l=$('#cands label').eq(nc+i);l.find('b').text(c.number+' · '+c.party);l.find('.fna-why').text(c.why);});
          $('#err').text('');$('#scrim').addClass('show');upd();
       });
    });
    $('#cands').on('change','input',upd);
    $('#mx').on('click',function(e){e.preventDefault();$('#scrim').removeClass('show');});
    $('#go').on('click',function(){
-      var ids=$('#cands input:checked').map(function(){return this.value;}).get();
-      $.ajax({url:"{{ url('merchant/match/confirm') }}",method:'POST',headers:{'X-CSRF-TOKEN':$('meta[name=csrf-token]').attr('content')},data:{statement_id:cur.line_id,doc_ids:ids},
+      var ids=$('#cands input:checked').not('[name=chq]').map(function(){return this.value;}).get();
+      var chq=$('#cands input[name=chq]:checked').data('chq');
+      $.ajax({url:"{{ url('merchant/match/confirm') }}",method:'POST',headers:{'X-CSRF-TOKEN':$('meta[name=csrf-token]').attr('content')},data:{statement_id:cur.line_id,doc_ids:ids,cheque_id:chq},
          success:function(){location.reload();},error:function(x){$('#err').text((x.responseJSON&&x.responseJSON.message)||'Could not match.');}});
    });
 });

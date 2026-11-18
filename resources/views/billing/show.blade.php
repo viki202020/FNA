@@ -36,14 +36,24 @@
 @endif
 @if(in_array($doc->status,['open','part']))
    <div class="fna-section-title">{{ $S ? 'Payment received' : 'Payment sent' }}</div>
-   <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/note') }}" class="d-flex flex-wrap gap-2 align-items-end" style="max-width:1000px">@csrf
-      <div><label>DATE</label><input type="date" class="form-control" name="pay_date" required value="{{ date('Y-m-d') }}"></div>
+   @if($errors->any())<div class="alert alert-danger" style="max-width:1000px">@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>@endif
+   <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/note') }}" class="d-flex flex-wrap gap-2 align-items-end" style="max-width:1000px" id="payform">@csrf
+      <div><label>MODE</label><select class="form-select" name="mode" id="pmode">@foreach(['Cheque','NEFT','RTGS','IMPS','UPI','Cash','Other'] as $m)<option>{{ $m }}</option>@endforeach</select></div>
+      <div><label>{{ $S ? 'DATE RECEIVED' : 'DATE PAID' }} (CHEQUE DATE)</label><input type="date" class="form-control" name="pay_date" required value="{{ date('Y-m-d') }}"></div>
       <div><label>AMOUNT</label><input class="form-control" name="amount" required value="{{ number_format($doc->total-$doc->settled,2,'.','') }}"></div>
-      <div><label>BANK</label><input class="form-control" name="bank_name"></div>
-      <div><label>UTR OR CHEQUE NO.</label><input class="form-control" name="reference"></div>
-      <button class="btn btn-outline-primary">Note it</button>
+      <div class="chq"><label>CHEQUE NO.</label><input class="form-control" name="cheque_no"></div>
+      <div class="chq"><label>BANK ACCOUNT</label><select class="form-select" name="bank_head_id"><option value="">Select</option>@foreach($banks as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach</select></div>
+      <div class="nochq" style="display:none"><label>UTR / REFERENCE</label><input class="form-control" name="reference"></div>
+      <button class="btn btn-outline-primary">Record</button>
    </form>
-   <div class="fna-foot-note" style="margin-top:4px;padding-top:0">This is only a note. Nothing is booked until the bank line arrives and you match it on Receipts to match.</div>
+   <div class="fna-foot-note" style="margin-top:4px;padding-top:0" id="payhelp"></div>
+   <script>
+   (function(){var m=document.getElementById('pmode');function f(){var c=m.value==='Cheque';
+     document.querySelectorAll('#payform .chq').forEach(function(e){e.style.display=c?'':'none';});
+     document.querySelectorAll('#payform .nochq').forEach(function(e){e.style.display=c?'none':'';});
+     document.getElementById('payhelp').textContent=c?'A cheque is posted on this date and goes into the cheque register. It stays Outstanding until the bank line is matched.':'This is only a note. Nothing is booked until the bank line arrives and you match it on Receipts to match.';}
+     m.onchange=f;f();})();
+   </script>
 @endif
 @if(count($settlements))
    <div class="fna-section-title">Payments matched</div>

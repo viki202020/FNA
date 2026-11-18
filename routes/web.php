@@ -78,6 +78,8 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant/manage-product', [MerchantController::class,'manageProduct']);
    Route::post('/merchant/add-product', [MerchantController::class,'addProduct']);
    Route::get('/merchant/manage-invoice', [BillingController::class,'index']);
+   Route::get('/merchant/cheque-register', [MatchController::class,'register']);
+   Route::get('/merchant/bank-reconciliation', [MatchController::class,'reconciliation']);
    Route::get('/merchant/receipts-to-match', [MatchController::class,'index']);
    Route::get('/merchant/match/candidates/{id}', [MatchController::class,'candidatesJson'])->whereNumber('id');
    Route::post('/merchant/match/confirm', [MatchController::class,'confirm']);

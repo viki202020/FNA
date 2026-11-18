@@ -25,6 +25,16 @@ class BillingPosting
         return $stem . str_pad((string) (((int) $max) + 1), 3, '0', STR_PAD_LEFT);
     }
 
+    /** PYV-2425-001 / RCV-2425-001 style numbers for payment vouchers; the counter restarts each year. */
+    public static function nextVoucherNumber($prefix, $fyear)
+    {
+        [$a, $b] = array_pad(explode('-', (string) $fyear), 2, '');
+        $stem = $prefix . '-' . substr($a, -2) . substr($b, -2) . '-';
+        $max = DB::table('vouchers')->where('voucher_no', 'like', $stem . '%')
+            ->selectRaw('MAX(CAST(SUBSTRING(voucher_no, ?) AS UNSIGNED)) m', [strlen($stem) + 1])->value('m');
+        return $stem . str_pad((string) (((int) $max) + 1), 3, '0', STR_PAD_LEFT);
+    }
+
     /** Works out the tax from the lines and the supply type; returns totals. */
     public static function totals(array $lines, $supply)
     {

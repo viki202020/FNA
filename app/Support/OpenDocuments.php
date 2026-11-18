@@ -32,6 +32,21 @@ class OpenDocuments
         return self::$cache[$key];
     }
 
+    private static function chequeAmounts($kind)
+    {
+        $m = Session::get('merchant_id');
+        $key = $m . '|chq|' . $kind;
+        if (!isset(self::$cache[$key])) {
+            self::$cache[$key] = [];
+            if (Schema::hasTable('payment_notes')) {
+                $rows = DB::table('payment_notes as n')->join('billing_docs as d', 'd.id', '=', 'n.doc_id')
+                    ->where('n.merchant_id', $m)->where('n.mode', 'Cheque')->where('n.status', 'outstanding')->where('d.kind', $kind)->pluck('n.amount');
+                foreach ($rows as $a) { self::$cache[$key][number_format($a, 2, '.', '')] = true; }
+            }
+        }
+        return self::$cache[$key];
+    }
+
     public static function forget() { self::$cache = []; }
 
     /** True when the amount equals the open balance of an invoice (credit) or bill (debit). */
@@ -39,8 +54,9 @@ class OpenDocuments
     {
         $d = (float) preg_replace('/[^0-9.\-]/', '', (string) $debit);
         $c = (float) preg_replace('/[^0-9.\-]/', '', (string) $credit);
-        if ($c > 0) { return isset(self::balances('sales')[number_format($c, 2, '.', '')]); }
-        if ($d > 0) { return isset(self::balances('purchase')[number_format($d, 2, '.', '')]); }
+        $k = number_format(max($c, $d), 2, '.', '');
+        if ($c > 0) { return isset(self::balances('sales')[$k]) || isset(self::chequeAmounts('sales')[$k]); }
+        if ($d > 0) { return isset(self::balances('purchase')[$k]) || isset(self::chequeAmounts('purchase')[$k]); }
         return false;
     }
 }

@@ -116,7 +116,8 @@ class BillingController extends Controller
         $settlements = DB::table('billing_settlements as s')->join('statement as st', 'st.id', '=', 's.statement_id')
             ->where('s.doc_id', $id)->get(['s.*', 'st.st_date', 'st.remark', 'st.voucher_no']);
         $heads = DB::table('head')->pluck('name', 'id');
-        return view('billing.show', ['doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
+        $banks = DB::table('head')->where('account_type_id', 3)->where('status', 1)->orderBy('name')->get(['id', 'name']);
+        return view('billing.show', ['banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
     }
 
     public function post(Request $request, $id)
