@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MerchantController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\RuleConflictController;
 
@@ -29,12 +30,18 @@ Route::get('/', function () {
 });
 Route::get('/logout', function () {    
     if(session()->has('id')){
-        session()->pull('id',null);
+        session()->flush();
         return redirect('login');
     }    
     return redirect('login');
 });
-Route::post('/login', [MerchantController::class,'login']);
+Route::post('/login', [AuthController::class,'password']);
+Route::get('/login/code', [AuthController::class,'codeForm']);
+Route::post('/login/code', [AuthController::class,'codeCheck']);
+Route::get('/login/setup', [AuthController::class,'setupForm']);
+Route::post('/login/setup', [AuthController::class,'setupCheck']);
+Route::get('/login/recovery', [AuthController::class,'recovery']);
+Route::post('/login/finish', [AuthController::class,'finish']);
 Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant', [MerchantController::class,'index']);
    Route::get('/merchant/entity', [MerchantController::class,'entity'])->name('students.list');
