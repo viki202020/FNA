@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\MatchController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\RuleConflictController;
@@ -77,6 +78,10 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant/manage-product', [MerchantController::class,'manageProduct']);
    Route::post('/merchant/add-product', [MerchantController::class,'addProduct']);
    Route::get('/merchant/manage-invoice', [BillingController::class,'index']);
+   Route::get('/merchant/receipts-to-match', [MatchController::class,'index']);
+   Route::get('/merchant/match/candidates/{id}', [MatchController::class,'candidatesJson'])->whereNumber('id');
+   Route::post('/merchant/match/confirm', [MatchController::class,'confirm']);
+   Route::post('/merchant/billing/{id}/note', [MatchController::class,'note'])->whereNumber('id');
    Route::get('/merchant/manage-bill', [BillingController::class,'index']);
    Route::get('/merchant/invoices/new', [BillingController::class,'create']);
    Route::get('/merchant/bills/new', [BillingController::class,'create']);

@@ -34,6 +34,17 @@
 @else
    <p class="mt-3">Posted as voucher <a class="fw-bold" href="{{ url('merchant/voucher/'.$doc->number) }}">{{ $doc->number }}</a>. Settled {{ number_format($doc->settled,2) }} of {{ number_format($doc->total,2) }}.</p>
 @endif
+@if(in_array($doc->status,['open','part']))
+   <div class="fna-section-title">{{ $S ? 'Payment received' : 'Payment sent' }}</div>
+   <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/note') }}" class="d-flex flex-wrap gap-2 align-items-end" style="max-width:1000px">@csrf
+      <div><label>DATE</label><input type="date" class="form-control" name="pay_date" required value="{{ date('Y-m-d') }}"></div>
+      <div><label>AMOUNT</label><input class="form-control" name="amount" required value="{{ number_format($doc->total-$doc->settled,2,'.','') }}"></div>
+      <div><label>BANK</label><input class="form-control" name="bank_name"></div>
+      <div><label>UTR OR CHEQUE NO.</label><input class="form-control" name="reference"></div>
+      <button class="btn btn-outline-primary">Note it</button>
+   </form>
+   <div class="fna-foot-note" style="margin-top:4px;padding-top:0">This is only a note. Nothing is booked until the bank line arrives and you match it on Receipts to match.</div>
+@endif
 @if(count($settlements))
    <div class="fna-section-title">Payments matched</div>
    <div class="fna-tablebox" style="max-width:1000px"><table class="table"><thead><tr><th>Date</th><th>Bank line</th><th>How</th><th style="text-align:right">Amount</th></tr></thead><tbody>

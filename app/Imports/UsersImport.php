@@ -148,7 +148,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
       $credit_amount = trim($credit_amount);
       $debit_amount = trim($debit_amount);
       //$rule = Rule::where('id',$select_rule)->first();
-      $rules = Rule::select('*')->where('status',1)->orderBy('id')->get();
+      $rules = \App\Support\OpenDocuments::reserved($debit_amount, $credit_amount) ? collect() : Rule::select('*')->where('status',1)->orderBy('id')->get();
       $matched_rules = [];
 
       // The lines are saved whether or not any rule exists; rules (if any) only choose the account.

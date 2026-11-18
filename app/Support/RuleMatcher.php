@@ -45,6 +45,10 @@ class RuleMatcher
     public static function fits($rule, $remark, $debit, $credit)
     {
         $debit = self::clean($debit); $credit = self::clean($credit);
+        // An amount that equals an open invoice or bill is never settled by a rule.
+        if (OpenDocuments::reserved($debit, $credit)) {
+            return false;
+        }
         $isDebit = $debit !== '' && (float) $debit > 0;
         $isCredit = $credit !== '' && (float) $credit > 0;
         if (!(($rule->rule_for === 'Debit' && $isDebit) || ($rule->rule_for === 'Credit' && $isCredit))) {
