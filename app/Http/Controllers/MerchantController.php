@@ -298,7 +298,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_head" data-id="'.$row->id.'" data-account_type="'.$row->account_type_id.'"  data-name="'.$row->name.'" data-description="'.$row->description.'" data-applicable_gst="'.$row->applicable_gst.'" data-tax_code="'.$row->tax_code.'" data-status="'.$row->status.'" data-balance="'.$row->balance.'" data-balance_date="'.$row->balance_date.'" data-balance_type="'.$row->balance_type.'" data-mandatory_category="'.$row->mandatory_category.'" data-mandatory_customer="'.$row->mandatory_customer.'" data-mandatory_supplier="'.$row->mandatory_supplier.'" data-parent_id="'.$row->parent_id.'">Edit</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_head" data-id="'.$row->id.'" data-account_type="'.$row->account_type_id.'"  data-name="'.$row->name.'" data-description="'.$row->description.'" data-applicable_gst="'.$row->applicable_gst.'" data-tax_code="'.$row->tax_code.'" data-status="'.$row->status.'" data-balance="'.$row->balance.'" data-balance_date="'.$row->balance_date.'" data-balance_type="'.$row->balance_type.'" data-mandatory_category="'.$row->mandatory_category.'" data-mandatory_customer="'.$row->mandatory_customer.'" data-mandatory_supplier="'.$row->mandatory_supplier.'" data-department_required="'.$row->department_required.'" data-parent_id="'.$row->parent_id.'">Edit</a>';
                return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -333,6 +333,7 @@ class MerchantController extends Controller{
       if($req->input('mandatory_supplier')!=""){
          $mandatory_supplier = 1;
       }
+      $department_required = $req->input('department_required')!="" ? 1 : 0;
       $validated = $req->validate([
          'name' => 'required',
          'applicable_gst' => 'required',           
@@ -350,6 +351,7 @@ class MerchantController extends Controller{
          $head->mandatory_category = $mandatory_category;
          $head->mandatory_customer = $mandatory_customer;
          $head->mandatory_supplier = $mandatory_supplier;
+         $head->department_required = $department_required;
          $head->balance_type = $balance_type;
          $head->updated_at = date('d-m-Y H:i:s');
          $head->updated_by = Session::get('id');
@@ -366,6 +368,7 @@ class MerchantController extends Controller{
          $head->mandatory_category = $mandatory_category;
          $head->mandatory_customer = $mandatory_customer;
          $head->mandatory_supplier = $mandatory_supplier;
+         $head->department_required = $department_required;
          $head->balance_type = $balance_type;
          $head->balance_date = $date;
          $head->merchant = Session::get('merchant_id');

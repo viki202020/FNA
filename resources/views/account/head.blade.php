@@ -104,6 +104,7 @@
                      <input type="checkbox" name="mandatory_category" id="mandatory_category" value="Category"> Category 
                      <input type="checkbox" name="mandatory_customer" id="mandatory_customer" value="Customer"> Customer 
                      <input type="checkbox" name="mandatory_supplier" id="mandatory_supplier" value="Supplier"> Supplier
+                     <input type="checkbox" name="department_required" id="department_required" value="1"> Department
                   </div>
                </div>
                <input type="hidden" name="head_id" id="head_id">
@@ -206,6 +207,7 @@
       if($(this).attr('data-mandatory_customer')==1){
          $("#mandatory_customer").prop('checked',true);
       }
+      $("#department_required").prop('checked', $(this).attr('data-department_required')==1);
       if($(this).attr('data-mandatory_supplier')==1){
          $("#mandatory_supplier").prop('checked',true);
       }
