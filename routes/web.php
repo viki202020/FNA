@@ -84,6 +84,7 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant/receipts-to-match', [MatchController::class,'index']);
    Route::get('/merchant/match/candidates/{id}', [MatchController::class,'candidatesJson'])->whereNumber('id');
    Route::post('/merchant/match/confirm', [MatchController::class,'confirm']);
+   Route::post('/merchant/billing/{id}/void', [PaymentReversalController::class,'void'])->whereNumber('id');
    Route::post('/merchant/billing/{id}/reverse', [PaymentReversalController::class,'reverse'])->whereNumber('id');
    Route::post('/merchant/billing/{id}/note', [MatchController::class,'note'])->whereNumber('id');
    Route::get('/merchant/manage-bill', [BillingController::class,'index']);

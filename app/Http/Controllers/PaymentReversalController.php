@@ -127,4 +127,56 @@ class PaymentReversalController extends Controller
                 'reason_code' => $code, 'reason_text' => $reasonText, 'reversed_by' => $me, 'created_at' => now(), 'updated_at' => now()]);
         }
     }
+
+    /**
+     * Void an invoice or bill. The document stays visible. A posted one gets a reversing voucher so the reports net to zero.
+     * It cannot be voided while it still has payments: reverse those first. Only the person who created it may void it.
+     */
+    public function void(Request $request, $id)
+    {
+        $doc = DB::table('billing_docs')->where('merchant_id', $this->merchant())->where('id', $id)->first();
+        abort_unless($doc, 404);
+        $base = url('merchant/' . ($doc->kind === 'sales' ? 'invoices' : 'bills') . '/' . $id);
+        $me = Session::get('id');
+        if ($doc->status === 'void') { return redirect($base)->with('error_msg', 'It is already void.'); }
+        if ((int) $doc->created_by !== (int) $me) { return redirect($base)->with('error_msg', 'Only the person who created this ' . ($doc->kind === 'sales' ? 'invoice' : 'bill') . ' can void it.'); }
+        if ($doc->settled > 0.004) { return redirect($base)->with('error_msg', 'It has payments against it. Reverse the payments first, then void it.'); }
+        $code = $request->input('reason_code'); $text = $request->input('reason_text');
+        $last = DB::table('billing_docs')->where('merchant_id', $this->merchant())->where('voided_by', $me)->orderByDesc('voided_at')->value('void_reason');
+        if ($err = ReversalReasons::error($code, $text, $doc->kind === 'sales', 'VOID', $last)) { return redirect($base)->with('error_msg', $err); }
+        $reason = $code === 'OTHERS' ? trim($text) : ReversalReasons::voidList()[$code];
+        try {
+            DB::transaction(function () use ($doc, $code, $reason, $me, $request) {
+                $vid = null;
+                if ($doc->voucher_id) {
+                    $date = $request->input('void_date') ?: self::defaultDate();
+                    if (!FinancialYears::dateInCurrentYear($date)) { throw new \RuntimeException('The void date is outside the open financial year.'); }
+                    $orig = DB::table('vouchers')->where('id', $doc->voucher_id)->first();
+                    if (!$orig || !FinancialYears::isOpen($orig->fyear)) { throw new \RuntimeException('The year of this document is closed.'); }
+                    $fyear = FinancialYears::current();
+                    $number = VoucherNumber::sequence('RJV', 4)->next();
+                    $vid = DB::table('vouchers')->insertGetId([
+                        'merchant_id' => $this->merchant(), 'voucher_no' => $number, 'series' => 'RJV', 'fyear' => $fyear, 'voucher_date' => $date, 'status' => 'posted', 'version' => 1,
+                        'narration' => 'Void of ' . $doc->number . ': ' . $reason, 'reference' => $doc->number, 'reverses_id' => $orig->id, 'created_by' => $me, 'created_at' => now(), 'updated_at' => now(),
+                    ]);
+                    foreach (DB::table('statement')->where('voucher_id', $orig->id)->where('status', 1)->get() as $l) {
+                        DB::table('statement')->insert([
+                            'voucher_no' => $number, 'voucher_id' => $vid, 'debit' => $l->credit, 'credit' => $l->debit, 'remark' => 'Void of ' . $doc->number, 'head_id' => $l->head_id,
+                            'st_date' => $date, 'fyear' => $fyear, 'status' => 1, 'opening' => 0, 'merchant_id' => $this->merchant(), 'created_at' => date('Y-m-d H:i:s'), 'created_by' => $me ?: 0,
+                        ]);
+                    }
+                    DB::table('vouchers')->where('id', $orig->id)->update(['status' => 'void', 'reversed_by_id' => $vid, 'updated_at' => now()]);
+                    DB::table('voucher_versions')->insert(['voucher_id' => $orig->id, 'version' => $orig->version, 'action' => 'voided', 'reason' => $reason, 'changed_by' => $me, 'created_at' => now(), 'updated_at' => now()]);
+                    DB::table('voucher_versions')->insert(['voucher_id' => $vid, 'version' => 1, 'action' => 'created', 'changed_by' => $me, 'created_at' => now(), 'updated_at' => now()]);
+                }
+                DB::table('billing_docs')->where('id', $doc->id)->update([
+                    'status' => 'void', 'void_code' => $code, 'void_reason' => $reason, 'voided_by' => $me, 'voided_at' => now(), 'void_voucher_id' => $vid, 'updated_at' => now(),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            return redirect($base)->with('error_msg', 'Not voided: ' . $e->getMessage());
+        }
+        \App\Support\OpenDocuments::forget();
+        return redirect($base)->with('success_msg', 'Voided. The reason is saved with your name and the time.');
+    }
 }

@@ -22,10 +22,18 @@ class ReversalReasons
         return $l;
     }
 
+    /** One list for voiding an invoice or a bill. */
+    public static function voidList()
+    {
+        return ['CHEQUE_DISHONOURED' => 'Cheque dishonoured', 'FRAUD' => 'Fraud discovered', 'COURT_CASE' => 'Court case',
+                'WRONG_AMOUNT' => 'Wrong amount entered', 'WRONG_DATE' => 'Wrong payment date', 'WRONG_MODE' => 'Incorrect payment mode',
+                'WITHHELD' => 'Payment withheld by customer', 'OTHERS' => 'Others'];
+    }
+
     /** Returns an error message, or null when the reason is acceptable. */
     public static function error($code, $text, $isReceipt, $mode, $lastReason = null)
     {
-        $allowed = self::list($isReceipt, $mode);
+        $allowed = $mode === 'VOID' ? self::voidList() : self::list($isReceipt, $mode);
         if (!isset($allowed[$code])) { return 'Choose a reason from the list.'; }
         if ($code !== 'OTHERS') { return null; }
         $t = trim((string) $text);

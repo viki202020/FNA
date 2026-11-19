@@ -103,5 +103,31 @@
    document.getElementById('revx').onclick=close;document.getElementById('revcancel').onclick=close;
 })();
 </script>
+@if($doc->status!=='void' && (int)$doc->created_by===(int)$me)
+   <div class="mt-3"><a href="#" id="voidopen" class="btn btn-outline-primary">Void this {{ $L['one'] }}</a>
+   @if($doc->settled>0.004)<span class="text-muted" style="font-size:12px;margin-left:8px">Reverse its payments first.</span>@endif</div>
+@endif
+@if($doc->status==='void')
+   <p class="mt-3"><span class="fna-chip void">Void</span> {{ $doc->void_reason }} <span class="text-muted">&middot; {{ date('d/m/Y', strtotime($doc->voided_at)) }}</span></p>
+@endif
+<div id="voidscrim" style="position:fixed;inset:0;background:rgba(1,54,2,.35);display:none;align-items:flex-start;justify-content:center;padding:60px 16px;z-index:2000">
+   <div style="background:#fff;border-radius:12px;width:100%;max-width:560px;padding:16px 18px;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h1 style="font-size:18px;margin:0">Void {{ $doc->number ?: 'this draft' }}</h1><a href="#" id="voidx" style="font-weight:700;text-decoration:none">Close &#10005;</a></div>
+      <p class="text-muted mt-2">The {{ $L['one'] }} stays visible and is removed from the reports. This cannot be undone.</p>
+      <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/void') }}">@csrf
+         @if($doc->voucher_id)<div style="margin-bottom:8px"><label>VOID DATE</label><input type="date" class="form-control" name="void_date" value="{{ \App\Http\Controllers\PaymentReversalController::defaultDate() }}" style="max-width:180px"></div>@endif
+         <label>REASON</label>
+         <select class="form-select" name="reason_code" id="voidreason" required><option value="">Select a reason</option>@foreach(\App\Support\ReversalReasons::voidList() as $k=>$v)<option value="{{ $k }}">{{ $v }}</option>@endforeach</select>
+         <div id="voidtext" style="display:none;margin-top:8px"><label>EXPLAIN (REQUIRED FOR "OTHERS")</label><textarea class="form-control" name="reason_text" rows="2" placeholder="A short, specific reason"></textarea></div>
+         <div class="mt-3 d-flex gap-2"><button class="btn btn-primary">Void</button><a href="#" class="btn btn-outline-primary" id="voidcancel">Cancel</a></div>
+      </form>
+   </div>
+</div>
+<script>
+(function(){var o=document.getElementById('voidopen');if(!o)return;var sc=document.getElementById('voidscrim');
+ o.onclick=function(e){e.preventDefault();sc.style.display='flex';};
+ function c(e){if(e)e.preventDefault();sc.style.display='none';}document.getElementById('voidx').onclick=c;document.getElementById('voidcancel').onclick=c;
+ document.getElementById('voidreason').onchange=function(){document.getElementById('voidtext').style.display=this.value==='OTHERS'?'':'none';};})();
+</script>
 <div class="fna-foot-note">{{ $L['foot'] }}. Nothing is ever deleted: a posted {{ $L['one'] }} can only be reversed or voided.</div>
 @endsection
