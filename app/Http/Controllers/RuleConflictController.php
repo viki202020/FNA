@@ -83,10 +83,7 @@ class RuleConflictController extends Controller
             $line = DB::table('statement')->where('voucher_no', $audit->voucher_no)->where('status', 0)->first();
             if (!$line) { return; }
             if (!FinancialYears::isOpen($line->fyear)) { $skipped++; $closed[$line->fyear] = true; return; }
-            DB::table('statement')->where('id', $line->id)->update([
-                'head_id' => $rule->head_id, 'status' => 1,
-                'updated_at' => date('d-m-Y H:i:s'), 'updated_by' => Session::get('id'),
-            ]);
+            \App\Support\LineCategoriser::set($line->id, $rule->head_id, 'rule', $rule->id);
             DB::table('rule_audit')->where('id', $audit->id)->update([
                 'outcome' => 'resolved', 'chosen_rule_id' => $rule->id, 'head_id' => $rule->head_id,
                 'decided_by' => Session::get('id'), 'decided_at' => now(), 'updated_at' => now(),

@@ -119,7 +119,7 @@ class PaymentReversalController extends Controller
     {
         $line = DB::table('statement')->where('id', $statementId)->where('merchant_id', $this->merchant())->first();
         if (!$line || !FinancialYears::isOpen($line->fyear)) { throw new \RuntimeException('The year of this bank line is closed.'); }
-        DB::table('statement')->where('id', $statementId)->update(['head_id' => null, 'status' => 0, 'updated_at' => date('d-m-Y H:i:s'), 'updated_by' => $me]);
+        \App\Support\LineCategoriser::clear($statementId);
         foreach ($sets as $s) {
             $this->reduceDoc($s->doc_id, $s->amount);
             DB::table('billing_settlements')->where('id', $s->id)->update(['reversed_at' => now(), 'reversed_by' => $me]);

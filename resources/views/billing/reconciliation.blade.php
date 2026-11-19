@@ -16,9 +16,10 @@
       <thead><tr><th>Item</th><th style="text-align:right">Amount</th></tr></thead>
       <tbody>
          <tr><td class="fw-bold">Balance as per the bank statement</td><td style="text-align:right" class="fw-bold">{{ number_format($b['statement'],2) }}</td></tr>
+         @if(abs($b['uncat'])>0.004)<tr class="sub"><td style="padding-left:26px">{{ $b['uncat']>0 ? 'Less' : 'Add' }}: bank lines not yet categorised (not in the accounts)</td><td style="text-align:right">{{ $b['uncat']>0 ? '('.number_format($b['uncat'],2).')' : number_format(abs($b['uncat']),2) }}</td></tr>@endif
          @foreach($b['issued'] as $c)<tr><td style="padding-left:26px">Less: cheque {{ $c->cheque_no }} to {{ $c->party_name }}, {{ date('d/m/Y', strtotime($c->pay_date)) }}, not yet presented</td><td style="text-align:right">({{ number_format($c->amount,2) }})</td></tr>@endforeach
          @foreach($b['received'] as $c)<tr><td style="padding-left:26px">Add: cheque {{ $c->cheque_no }} from {{ $c->party_name }}, {{ date('d/m/Y', strtotime($c->pay_date)) }}, not yet cleared</td><td style="text-align:right">{{ number_format($c->amount,2) }}</td></tr>@endforeach
-         <tr style="border-top:2px solid var(--fna-green)"><td class="fw-bold">Balance as per the books</td><td style="text-align:right" class="fw-bold">{{ number_format($b['statement'] - $b['issuedTotal'] + $b['receivedTotal'],2) }}</td></tr>
+         <tr style="border-top:2px solid var(--fna-green)"><td class="fw-bold">Balance as per the books</td><td style="text-align:right" class="fw-bold">{{ number_format($b['statement'] - $b['uncat'] - $b['issuedTotal'] + $b['receivedTotal'],2) }}</td></tr>
       </tbody>
    </table></div>
    @endforeach

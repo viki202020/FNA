@@ -10,7 +10,7 @@ class Statement extends Model
     use HasFactory;
     protected $table = 'statement';
     protected $fillable = [
-        'head_id','debit','credit','bank_id','fyear','remark','st_date','voucher_no','merchant_id','created_at','created_by','status','voucher_id'
+        'head_id','debit','credit','bank_id','fyear','remark','st_date','voucher_no','merchant_id','created_at','created_by','status','voucher_id','cat_source','cat_rule_id','cat_by'
     ];
 
     /**

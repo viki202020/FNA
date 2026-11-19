@@ -40,7 +40,8 @@
                   <th>Debit</th>
                   <th>Credit</th>
                   <th>Balance</th>
-                  <th>Head</th>
+                  <th>Account</th>
+                  <th>Categorised</th>
                </tr>
             </thead>
             <tbody>
@@ -71,7 +72,8 @@
               {data: 'credit', name: 'credit'},
               {data: 'debit', name: 'debit'},
               {data: 'balance', name: 'balance'},
-              {data: 'name', name: 'name'},
+              {data: 'account', name: 'account', orderable: false, searchable: false},
+              {data: 'how', name: 'how', orderable: false, searchable: false},
               
               // {
               //     data: 'action', 

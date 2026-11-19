@@ -46,7 +46,7 @@ class MerchantController extends Controller{
          return $creditMinusDebit ? ($row->c - $row->d) : ($row->d - $row->c);
       };
       $bankRow = DB::table('statement as s')->join('head as h','h.id','=','s.head_id')
-               ->where('s.merchant_id',$merchant)->where('s.status',1)->where('s.fyear',$year)->where('h.account_type_id',3)
+               ->where('s.merchant_id',$merchant)->whereIn('s.status',[0,1])->where('s.fyear',$year)->where('h.account_type_id',3)
                ->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
       $bankCount = DB::table('head')->where('account_type_id',3)->where('status',1)->count();
       $totals = (clone $effective)->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
@@ -705,7 +705,7 @@ class MerchantController extends Controller{
 
          $data = Statement::leftjoin('head', 'statement.head_id', '=', 'head.id')
                   ->where("merchant_id",Session::get('merchant_id'))
-                  ->where("statement.status",1)
+                  ->whereIn("statement.status",[0,1])
                   ->where('head_id',$hid)
                   ->where("statement.opening",0)
                   ->where("statement.fyear",$selected_year)
@@ -727,6 +727,24 @@ class MerchantController extends Controller{
          foreach ($data as $key => $row){
             $running += $toNumber($row["debit"]) - $toNumber($row["credit"]);
             $data[$key]->balance = number_format($running,2);
+         }
+         // The other side of each bank line: which account it went to, and whether a rule or a person chose it.
+         $vnos = $data->pluck('voucher_no')->filter()->unique()->values()->all();
+         $others = [];
+         if($vnos){
+            $heads = Head::pluck('name','id');
+            $ruleNames = Rule::pluck('rule_name','id');
+            $users = \DB::table('merchant')->pluck('name','id');
+            foreach(\DB::table('statement')->where('merchant_id',Session::get('merchant_id'))->whereIn('voucher_no',$vnos)->whereRaw('(head_id IS NULL OR head_id = \'\' OR head_id <> bank_id)')->get() as $o){
+               $others[$o->voucher_no] = $o;
+            }
+            foreach($data as $k=>$row){
+               $o = $others[$row->voucher_no] ?? null;
+               if(!$o || (int)$o->status !== 1){ $data[$k]->account = 'Not categorised'; $data[$k]->how = ''; continue; }
+               $data[$k]->account = $heads[$o->head_id] ?? '';
+               $data[$k]->how = $o->cat_source==='rule' ? 'By rule'.(isset($ruleNames[$o->cat_rule_id]) ? ': '.$ruleNames[$o->cat_rule_id] : '')
+                              : ($o->cat_source==='person' ? 'By '.($users[$o->cat_by] ?? 'a user') : '');
+            }
          }
          return Datatables::of($data)
          ->addIndexColumn()
@@ -795,11 +813,7 @@ class MerchantController extends Controller{
       $done = 0; $not_fit = 0;
       foreach ($rows as $value) {
          if($rule && RuleMatcher::fits($rule, $value->remark, $value->debit, $value->credit)){
-            $value->head_id = $rule->head_id;
-            $value->status = 1;
-            $value->updated_at = date('d-m-Y H:i:s');
-            $value->updated_by = Session::get('id');
-            $value->save();
+            \App\Support\LineCategoriser::set($value->id, $rule->head_id, 'rule', $rule->id);
             $this->auditRuleApplied($value, 'resolved', $rule->id, $rule->head_id, [$rule->id]);
             $done++;
          }else{
@@ -836,11 +850,7 @@ class MerchantController extends Controller{
          $heads = array_values(array_unique(array_column($matched,'head')));
          $ids = array_values(array_unique(array_column($matched,'rule')));
          if(count($heads)==1){
-            $value->head_id = $heads[0];
-            $value->status = 1;
-            $value->updated_at = date('d-m-Y H:i:s');
-            $value->updated_by = Session::get('id');
-            $value->save();
+            \App\Support\LineCategoriser::set($value->id, $heads[0], 'rule', $matched[0]['rule']);
             $this->auditRuleApplied($value, 'auto', $matched[0]['rule'], $heads[0], $ids, $matched);
             $done++;
          }else if(empty($value->voucher_no)){
@@ -888,12 +898,7 @@ class MerchantController extends Controller{
          }
          foreach ($input['voucher_row'] as $key => $value){
             if($input['voucher_head'][$key]!=""){
-               $statement = Statement::find($value);
-               $statement->head_id = $input['voucher_head'][$key];
-               $statement->status = 1;     
-               $statement->updated_at = date('d-m-Y H:i:s');
-               $statement->updated_by = Session::get('id');
-               $statement->save(); 
+               \App\Support\LineCategoriser::set($value, $input['voucher_head'][$key], 'person');
             }
          }
          echo 1;
@@ -905,13 +910,9 @@ class MerchantController extends Controller{
       if(!FinancialYears::isOpen($statement->fyear)){
          return response()->json(['success'=>false,'message'=>FinancialYears::message($statement->fyear)]);
       }
-      $statement->head_id = $select_head;
-      $statement->status = 1;     
-      $statement->updated_at = date('d-m-Y H:i:s');
-      $statement->updated_by = Session::get('id');
       // The bank's own entry already exists (it is created when the line is uploaded);
-      // choosing the account only completes the other side.
-      if($statement->save()){
+      // choosing the account completes the other side and brings both entries into the accounts.
+      if(\App\Support\LineCategoriser::set($statement->id, $select_head, 'person')){
          echo 1;
       }
       
@@ -1711,7 +1712,8 @@ class MerchantController extends Controller{
       if($closed_line){
          return response()->json(['success'=>false,'data'=>'','message'=>FinancialYears::message($closed_line->fyear)]);
       }
-      $update = Statement::whereIn('id', $id)->update(['head_id' => $input['select_bulk_head'],'status'=>1]);
+      $update = 0;
+      foreach($id as $lineId){ if(\App\Support\LineCategoriser::set($lineId, $input['select_bulk_head'], 'person')){ $update++; } }
       if($update){
          $response = [
                'success' => true,

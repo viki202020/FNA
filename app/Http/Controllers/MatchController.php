@@ -123,10 +123,7 @@ class MatchController extends Controller
                     DB::table('payment_notes')->where('doc_id', $d->id)->where('status', 'sent')->update(['status' => 'matched', 'updated_at' => now()]);
                 }
                 if ($remaining > 0.004) { throw new \RuntimeException('The chosen documents are worth less than the money (' . number_format($remaining, 2) . ' left over). Choose more, or use Assign manually.'); }
-                DB::table('statement')->where('id', $line->id)->update([
-                    'head_id' => BillingSettings::get($in ? 'receivable_head' : 'payable_head'), 'status' => 1,
-                    'updated_at' => date('d-m-Y H:i:s'), 'updated_by' => Session::get('id'),
-                ]);
+                \App\Support\LineCategoriser::set($line->id, BillingSettings::get($in ? 'receivable_head' : 'payable_head'), 'person');
             });
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -147,10 +144,7 @@ class MatchController extends Controller
                 $n = DB::table('payment_notes')->where('id', $chequeId)->where('merchant_id', $this->merchant())->where('mode', 'Cheque')->where('status', 'outstanding')->lockForUpdate()->first();
                 if (!$n) { throw new \RuntimeException('That cheque is no longer outstanding.'); }
                 if (abs($n->amount - $amount) > 0.004) { throw new \RuntimeException('The cheque amount differs from the bank line.'); }
-                DB::table('statement')->where('id', $line->id)->update([
-                    'head_id' => BillingSettings::transitHead($in ? 'chq_in' : 'chq_out'), 'status' => 1,
-                    'updated_at' => date('d-m-Y H:i:s'), 'updated_by' => Session::get('id'),
-                ]);
+                \App\Support\LineCategoriser::set($line->id, BillingSettings::transitHead($in ? 'chq_in' : 'chq_out'), 'person');
                 DB::table('payment_notes')->where('id', $n->id)->update(['status' => 'cleared', 'cleared_on' => date('Y-m-d', strtotime($line->st_date)), 'statement_id' => $line->id, 'updated_at' => now()]);
             });
         } catch (\Throwable $e) {
@@ -248,7 +242,11 @@ class MatchController extends Controller
         $banks = DB::table('head')->where('account_type_id', 3)->where('status', 1)->orderBy('name')->get(['id', 'name']);
         $out = [];
         foreach ($banks as $b) {
-            $bal = DB::table('statement')->where('merchant_id', $this->merchant())->where('status', 1)->where('head_id', $b->id)
+            // The bank's own balance counts every bank entry, categorised or not.
+            $bal = DB::table('statement')->where('merchant_id', $this->merchant())->whereIn('status', [0, 1])->where('head_id', $b->id)
+                ->whereDate('st_date', '<=', $asat)->selectRaw("ROUND(SUM(IF(debit IN ('-',''),0,debit+0)) - SUM(IF(credit IN ('-',''),0,credit+0)),2) AS net")->value('net');
+            // Bank lines not yet categorised are not in the accounts.
+            $uncat = DB::table('statement')->where('merchant_id', $this->merchant())->where('status', 0)->where('head_id', $b->id)
                 ->whereDate('st_date', '<=', $asat)->selectRaw("ROUND(SUM(IF(debit IN ('-',''),0,debit+0)) - SUM(IF(credit IN ('-',''),0,credit+0)),2) AS net")->value('net');
             $chq = DB::table('payment_notes as n')->join('billing_docs as d', 'd.id', '=', 'n.doc_id')
                 ->where('n.merchant_id', $this->merchant())->where('n.mode', 'Cheque')->where('n.bank_head_id', $b->id)
@@ -257,7 +255,7 @@ class MatchController extends Controller
                 ->get(['n.*', 'd.kind', 'd.party_name']);
             $issued = $chq->where('kind', 'purchase'); $received = $chq->where('kind', 'sales');
             $out[] = ['bank' => $b->name, 'statement' => (float) $bal, 'issued' => $issued, 'received' => $received,
-                'issuedTotal' => (float) $issued->sum('amount'), 'receivedTotal' => (float) $received->sum('amount')];
+                'uncat' => (float) $uncat, 'issuedTotal' => (float) $issued->sum('amount'), 'receivedTotal' => (float) $received->sum('amount')];
         }
         return view('billing.reconciliation', ['asat' => $asat, 'banks' => $out]);
     }
