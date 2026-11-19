@@ -232,6 +232,7 @@
 <script type="text/javascript">
    getData();
    var row_id = [];
+   var retick = [];
    function getData(){
       $('.yajra-datatable').dataTable().fnDestroy();
       var table = $('.yajra-datatable').DataTable({
@@ -239,6 +240,7 @@
           serverSide: true,
           "iDisplayLength": 100,
           ajax: "{{ route('uncategorized_data.list') }}",
+          drawCallback: function(){ if(retick.length){ $('.check').each(function(){ if(retick.indexOf(String($(this).val()))>-1){ $(this).prop('checked', true); } }); retick = []; } },
           columns: [
               {data: 'bulk_check', name: 'bulk_check'},
               {data: 'st_date', name: 'st_date'},
@@ -528,7 +530,14 @@
          success: function(data){
 
            if(data.success==true){
-               alert("Head Assigned Successfully");
+               var failed = data.failed || [];
+               if(failed.length){
+                  var lines = failed.map(function(f){ return '- '+f.st_date+' '+f.remark+': '+f.reason; }).join('\n');
+                  alert(data.done+" line(s) assigned.\n"+failed.length+" line(s) could not be assigned and are still ticked:\n"+lines);
+                  retick = failed.map(function(f){ return String(f.id); });
+               }else{
+                  alert(data.done+" line(s) assigned successfully.");
+               }
                getData();
                $("#manuallyBulkModal").modal('toggle');
            }else{

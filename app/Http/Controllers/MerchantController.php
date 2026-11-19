@@ -46,7 +46,7 @@ class MerchantController extends Controller{
          return $creditMinusDebit ? ($row->c - $row->d) : ($row->d - $row->c);
       };
       $bankRow = DB::table('statement as s')->join('head as h','h.id','=','s.head_id')
-               ->where('s.merchant_id',$merchant)->whereIn('s.status',[0,1])->where('s.fyear',$year)->where('h.account_type_id',3)
+               ->where('s.merchant_id',$merchant)->where('s.status',1)->where('s.fyear',$year)->where('h.account_type_id',3)
                ->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
       $bankCount = DB::table('head')->where('account_type_id',3)->where('status',1)->count();
       $totals = (clone $effective)->selectRaw('COALESCE(SUM(s.debit+0),0) as d, COALESCE(SUM(s.credit+0),0) as c')->first();
@@ -725,7 +725,8 @@ class MerchantController extends Controller{
          };
          $running = $bank ? ($toNumber($bank->debit) - $toNumber($bank->credit)) : 0;
          foreach ($data as $key => $row){
-            $running += $toNumber($row["debit"]) - $toNumber($row["credit"]);
+            // Only categorised entries are in the accounts, so only they move the balance.
+            if((int)$row->status === 1){ $running += $toNumber($row["debit"]) - $toNumber($row["credit"]); }
             $data[$key]->balance = number_format($running,2);
          }
          // The other side of each bank line: which account it went to, and whether a rule or a person chose it.
@@ -1706,29 +1707,29 @@ class MerchantController extends Controller{
       return view('account.trial_balance',["tb_difference"=>round($debit_total - $credit_total, 2),"year_options"=>$year_options,"year_is_closed"=>$year_is_closed,"year_is_reopened"=>$year_is_reopened,"heads"=>$head,"debit_total"=>number_format($debit_total,2),"credit_total"=>number_format($credit_total,2),"close_total"=>(float) $close_total,"open_total"=>number_format($open_total,2),"entity_name"=>$entityname,"address"=>$address,"entity_financial_year"=>$entity_financial_year,"selected_year"=>$selected_year,"entity"=>$entity]);
    }
    public function assignBulkHeadManually(Request $request){
+      // Every line is handled on its own: the ones that can be assigned are assigned, and the others
+      // are listed with the reason so only those need another try.
       $input = $request->all();
-      $id = explode(",",$input['row_id']);
-      $closed_line = Statement::whereIn('id', $id)->get()->first(function($l){ return !FinancialYears::isOpen($l->fyear); });
-      if($closed_line){
-         return response()->json(['success'=>false,'data'=>'','message'=>FinancialYears::message($closed_line->fyear)]);
+      $ids = array_filter(explode(",",$input['row_id'] ?? ''));
+      if(empty($input['select_bulk_head']) || empty($ids)){
+         return response()->json(['success'=>false,'data'=>'','message'=>'Choose lines and an account.']);
       }
-      $update = 0;
-      foreach($id as $lineId){ if(\App\Support\LineCategoriser::set($lineId, $input['select_bulk_head'], 'person')){ $update++; } }
-      if($update){
-         $response = [
-               'success' => true,
-               'data'    => '',
-               'message' => "Product Add Successfully.",
-            ];
-         return response()->json($response, 200);
-      }else{
-         $response = [
-               'success' => false,
-               'data'    => '',
-               'message' => "Something Went Wrong",
-            ];
-         return response()->json($response, 200);
+      $done = 0; $failed = [];
+      foreach($ids as $lineId){
+         $line = Statement::where('id',$lineId)->where('merchant_id',Session::get('merchant_id'))->first();
+         if(!$line){ $failed[] = ['id'=>$lineId,'st_date'=>'','remark'=>'(line not found)','reason'=>'The line no longer exists.']; continue; }
+         $why = null;
+         if((int)$line->status !== 0){ $why = 'Already categorised.'; }
+         elseif(!FinancialYears::isOpen($line->fyear)){ $why = FinancialYears::message($line->fyear); }
+         if($why){ $failed[] = ['id'=>$line->id,'st_date'=>$line->st_date,'remark'=>substr((string)$line->remark,0,40),'reason'=>$why]; continue; }
+         try{
+            \App\Support\LineCategoriser::set($line->id, $input['select_bulk_head'], 'person');
+            $done++;
+         }catch(\Throwable $e){
+            $failed[] = ['id'=>$line->id,'st_date'=>$line->st_date,'remark'=>substr((string)$line->remark,0,40),'reason'=>'Could not be saved. Try again.'];
+         }
       }
+      return response()->json(['success'=>true,'data'=>'','done'=>$done,'failed'=>$failed,'message'=>$done.' assigned']);
    }
    public function voucherEntry(Request $request){
       $input = $request->all();

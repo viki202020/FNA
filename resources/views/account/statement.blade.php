@@ -65,6 +65,12 @@
           processing: true,
           serverSide: true,
           ajax: "{{ url('merchant/statement/'.$selected_year.'/'.$selected_bank) }}",
+          createdRow: function(row, data){
+              if(data.account === 'Not categorised'){
+                  $(row).css({'color':'#8A958E','font-style':'italic'});
+                  $('td', row).eq(2).append('<div style="font-size:11px;font-style:normal;color:#6B726D">Not categorised: not in the accounts yet, so it does not change the balance</div>');
+              }
+          },
           columns: [
               {data: 'DT_RowIndex', name: 'DT_RowIndex'},
               {data: 'st_date', name: 'st_date'},
