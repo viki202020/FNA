@@ -1871,7 +1871,7 @@ class MerchantController extends Controller{
       if(strtotime($entity->financial_year_end)<strtotime(date('Y-m-d'))){
          $button_status = "1";
       }   
-      return view('account.manage_close_book',["entity"=>$entity,"button_status"=>$button_status,"blockers"=>FinancialYears::closeBlockers($entity->financial_year)]);
+      return view('account.manage_close_book',["entity"=>$entity,"button_status"=>$button_status,"blockers"=>FinancialYears::closeBlockers($entity->financial_year),"warnings"=>FinancialYears::closeWarnings($entity->financial_year)]);
    }
 
 }

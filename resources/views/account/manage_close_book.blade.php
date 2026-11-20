@@ -8,14 +8,17 @@
 <div class="row">
     <div class="col-12">
         <h1 class="mb-1">Close the books for {{$entity->financial_year}}</h1>
-        <p class="text-muted mb-2">{{$entity->name}}. Every item below must be ticked before the year can close.</p>
+        <p class="text-muted mb-2">{{$entity->name}}. Every item marked ! must be cleared before the year can close. Items marked i are for your information only.</p>
         @php $canClose = $button_status==1 && count($blockers)==0; @endphp
         <div class="fna-tablebox" style="max-width:900px">
            <table class="table">
               <thead><tr><th style="width:36px"></th><th>Check</th><th style="width:190px">What to do</th></tr></thead>
               <tbody>
                  @foreach($blockers as $b)
-                 <tr><td class="fw-bold" style="color:var(--fna-green)">!</td><td>{{ $b['message'] }}</td><td><a class="fw-bold" href="{{ url('merchant/uncategorized-data') }}">Categorise &rsaquo;</a></td></tr>
+                 <tr><td class="fw-bold" style="color:var(--fna-green)">!</td><td>{{ $b['message'] }}</td><td><a class="fw-bold" href="{{ url($b['url'] ?? 'merchant/uncategorized-data') }}">{{ $b['label'] ?? 'Categorise' }} &rsaquo;</a></td></tr>
+                 @endforeach
+                 @foreach($warnings as $w)
+                 <tr><td class="fw-bold" style="color:var(--fna-grey)">i</td><td>{{ $w['message'] }}</td><td><a class="fw-bold" href="{{ url('merchant/bank-reconciliation') }}">Reconciliation &rsaquo;</a></td></tr>
                  @endforeach
                  @if(!count($blockers))
                  <tr><td class="fw-bold" style="color:var(--fna-green)">&#10003;</td><td>Nothing is uncategorised and no entries are drafts or unbalanced</td><td></td></tr>
