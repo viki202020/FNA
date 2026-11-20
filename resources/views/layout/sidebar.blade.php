@@ -22,11 +22,13 @@
       ['head', 'Setup'],
       ['Company', '/merchant/entity', ['merchant/entity*']],
       ['Accounts', '/merchant/manage-account', ['merchant/manage-account*']],
+      ['Departments', '/merchant/departments', ['merchant/departments*']],
       ['Account heads', '/merchant/account-head', ['merchant/account-head*']],
       ['Customers', '/merchant/customers', ['merchant/customers*']],
       ['Invoices', '/merchant/manage-invoice', ['merchant/manage-invoice*','merchant/invoices*']],
       ['Bills', '/merchant/manage-bill', ['merchant/manage-bill*','merchant/bills*']],
       ['Products', '/merchant/manage-product', ['merchant/manage-product*']],
+      ['Posting accounts', '/merchant/posting-accounts', ['merchant/posting-accounts*']],
       ['Close book', '/merchant/manage-book', ['merchant/manage-book*']],
    ];
 @endphp

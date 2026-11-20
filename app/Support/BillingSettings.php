@@ -19,6 +19,25 @@ class BillingSettings
         'cgst_in' => 86,         // CGST Input Tax
         'sgst_in' => 87,         // SGST Input Tax
         'igst_in' => 104,        // IGST Input tax
+        'tds_deducted' => 49,    // TDS Payable (tax we deduct when we pay)
+        'tds_recoverable' => 107,// TDS recoverable (tax a customer deducted when paying us)
+        'cash_head' => 2,        // Cash and Cash Equivalents
+    ];
+
+    /** key => [label shown on the settings screen, what it is used for] */
+    const LABELS = [
+        'sales_head' => ['Sales', 'Credited on every sales invoice, for the amount before tax'],
+        'receivable_head' => ['Trade Receivables', 'Debited on a sales invoice; credited when the customer pays'],
+        'cgst_out' => ['CGST on sales', 'Credited on a sales invoice (same state)'],
+        'sgst_out' => ['SGST on sales', 'Credited on a sales invoice (same state)'],
+        'igst_out' => ['IGST on sales', 'Credited on a sales invoice (other state)'],
+        'payable_head' => ['Accounts Payable', 'Credited on a purchase bill; debited when you pay it'],
+        'cgst_in' => ['CGST on purchases', 'Debited on a purchase bill (same state)'],
+        'sgst_in' => ['SGST on purchases', 'Debited on a purchase bill (same state)'],
+        'igst_in' => ['IGST on purchases', 'Debited on a purchase bill (other state)'],
+        'tds_deducted' => ['TDS deducted (payable)', 'Tax you deduct from a supplier payment'],
+        'tds_recoverable' => ['TDS recoverable', 'Tax a customer deducts from a receipt'],
+        'cash_head' => ['Cash in hand', 'Cash payments and receipts'],
     ];
 
     public static function get($key)
