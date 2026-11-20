@@ -129,6 +129,13 @@ class VoucherController extends Controller
             ->where('s.voucher_id', $voucher->id)
             ->orderBy('s.id')
             ->get(['s.*', 'h.name as head_name']);
+        if ($voucher->status === 'draft') {
+            // a draft is not in the books: show its working lines
+            $lines = DB::table('voucher_draft_lines as d')->leftJoin('head as h', 'h.id', '=', 'd.head_id')->where('d.voucher_id', $voucher->id)->orderBy('d.line_no')
+                ->get(['d.*', 'h.name as head_name'])->map(function ($d) use ($voucher) {
+                    $d->st_date = $voucher->voucher_date; $d->remark = $d->narration; $d->fyear = $voucher->fyear; $d->status = 0; return $d;
+                });
+        }
         $totalDebit = 0; $totalCredit = 0;
         foreach ($lines as $l) {
             $totalDebit += (float) $l->debit;

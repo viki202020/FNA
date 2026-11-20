@@ -13,7 +13,9 @@
          <span class="fna-chip {{ $voucher->status }}">{{ ucfirst($voucher->status) }}</span>
          <span style="color:var(--fna-muted)">Version {{ $voucher->version }} · FY {{ $voucher->fyear ?: '-' }}</span>
       </div>
+      @if($voucher->status==='draft' && !$year_is_closed)<a class="btn btn-primary" href="{{ url('merchant/journal/'.$voucher->id.'/edit') }}">Edit draft</a>@endif
    </div>
+   @if(session('success_msg'))<div class="alert alert-success" style="margin-bottom:10px">{{ session('success_msg') }}</div>@endif
    @if($year_is_closed)<div class="alert alert-warning" style="margin-bottom:10px"><strong>Financial year {{ $voucher->fyear }} is closed.</strong> This voucher is read only.</div>@endif
    <div style="background:var(--fna-tint);border-radius:8px;padding:9px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px 36px">
       <div><div style="font-size:10px;color:var(--fna-muted);font-weight:700">TYPE</div><div style="font-size:14px;font-weight:500">{{ \App\Http\Controllers\VoucherController::seriesLabel($voucher->series) }}</div></div>
@@ -33,7 +35,7 @@
                <td>{{ $l->remark }}</td>
                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ (float)$l->debit ? number_format((float)$l->debit,2) : '' }}</td>
                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ (float)$l->credit ? number_format((float)$l->credit,2) : '' }}</td>
-               <td style="color:var(--fna-muted)">{{ $l->status ? 'In the books' : 'Uncategorised' }}</td>
+               <td style="color:var(--fna-muted)">{{ $voucher->status==='draft' ? 'Draft: not in the books' : ($l->status ? 'In the books' : 'Uncategorised') }}</td>
             </tr>
          @endforeach
          <tr style="font-weight:700;border-top:2px solid var(--fna-green)">

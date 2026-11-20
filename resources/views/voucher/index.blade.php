@@ -13,6 +13,7 @@
    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px">
       <h1 style="margin:0">All Vouchers</h1>
       <div style="display:flex;align-items:center;gap:10px">
+         <a class="btn btn-primary" href="{{ url('merchant/journal/new') }}">+ New journal</a>
          <label style="display:inline-flex;align-items:center;gap:6px;margin:0">Financial year
             <select name="year" class="form-select" style="width:auto;font-weight:700;color:var(--fna-green)" onchange="document.getElementById('vform').submit()">
                <option value="all" @if($selected_year=='all') selected @endif>All years</option>
