@@ -44,8 +44,7 @@ class AuthController extends Controller
         if (RateLimiter::tooManyAttempts($key, 10)) {
             return back()->withErrors(['Too many attempts. Try again in ' . ceil(RateLimiter::availableIn($key) / 60) . ' minutes.']);
         }
-        $user = Merchant::where('status', 1)->where('email', $req->input('username'))
-                ->where('password', md5($req->input('password')))->first();
+        $user = \App\Support\PasswordCheck::user($req->input('username'), $req->input('password'));
         if (!$user) {
             RateLimiter::hit($key, 900);
             return back()->withErrors(['Invalid username/password']);

@@ -97,13 +97,7 @@ class MerchantController extends Controller{
          'username' => 'required',
          'password' => 'required',
       ]);      
-      $check_login = Merchant::select('*')
-                     ->where([
-                           ["status", "=", 1],
-                           ["email", "=", $user_name],
-                           ["password", "=", md5($password)]
-                           ])
-                     ->first();
+      $check_login = \App\Support\PasswordCheck::user($user_name, $password);
       if($check_login){            
          $req->session()->put('id', $check_login->id);
          $req->session()->put('merchant_id', $check_login->id);
