@@ -7,6 +7,7 @@ use App\Http\Controllers\MatchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalController;
+use App\Http\Controllers\OpeningBalanceController;
 use App\Http\Controllers\PaymentReversalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VoucherController;
@@ -97,6 +98,10 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant/journal/{id}/edit', [JournalController::class,'edit'])->whereNumber('id');
    Route::post('/merchant/journal/save', [JournalController::class,'save']);
    Route::post('/merchant/journal/{id}/save', [JournalController::class,'save'])->whereNumber('id');
+   Route::get('/merchant/opening-balance', [OpeningBalanceController::class,'form']);
+   Route::get('/merchant/opening-balance/template', [OpeningBalanceController::class,'template']);
+   Route::post('/merchant/opening-balance/preview', [OpeningBalanceController::class,'preview']);
+   Route::post('/merchant/opening-balance/confirm', [OpeningBalanceController::class,'confirm']);
    Route::get('/merchant/posting-accounts', [SettingsController::class,'index']);
    Route::post('/merchant/posting-accounts', [SettingsController::class,'save']);
    Route::get('/merchant/manage-bill', [BillingController::class,'index']);

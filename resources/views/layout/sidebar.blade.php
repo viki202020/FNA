@@ -13,6 +13,7 @@
       ['Profit and loss', '/merchant/profit-loss', ['merchant/profit-loss*']],
       ['head', 'Upload'],
       ['Bank txns file', '/merchant/upload-csv', ['merchant/upload-csv*']],
+      ['Opening balances', '/merchant/opening-balance', ['merchant/opening-balance*']],
       ['Journal txns file', '/merchant/upload-expencess-csv', ['merchant/upload-expencess-csv*']],
       ['Uncategorised entry', '/merchant/uncategorized-data', ['merchant/uncategorized-data*']],
       ['Receipts to match', '/merchant/receipts-to-match', ['merchant/receipts-to-match*']],
