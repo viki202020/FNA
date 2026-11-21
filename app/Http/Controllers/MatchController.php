@@ -39,10 +39,15 @@ class MatchController extends Controller
                 if ($tdsSug > 0 && abs(($bal - $tdsSug) - $amount) < 0.005) { $score += 3; $why[] = 'amount equals the balance less TDS at ' . ((float) $d->p_rate) . '%'; }
             }
             if (isset($notes[$d->id])) {
+                // a "payment sent / received" note only counts for a bank line that fits it: its amount, or its reference in the wording
                 $n = $notes[$d->id]->first();
-                $score += 2; $why[] = ($in ? 'payment received' : 'payment sent') . ' noted on ' . date('d/m/Y', strtotime($n->pay_date));
-                if (abs($n->amount - $amount) < 0.005) { $score += 2; }
-                if ($n->reference && str_contains($text, strtoupper($n->reference))) { $score += 3; $why[] = 'reference ' . $n->reference . ' is in the bank wording'; }
+                $byRef = $n->reference && str_contains($text, strtoupper($n->reference));
+                $byAmt = abs($n->amount - $amount) < 0.005;
+                if ($byRef || $byAmt) {
+                    $score += 2; $why[] = ($in ? 'payment received' : 'payment sent') . ' noted on ' . date('d/m/Y', strtotime($n->pay_date));
+                    if ($byAmt) { $score += 2; }
+                    if ($byRef) { $score += 3; $why[] = 'reference ' . $n->reference . ' is in the bank wording'; }
+                }
             }
             if ($score === 0) { continue; }
             $out[] = ['id' => $d->id, 'number' => $d->number, 'party' => $d->party_name, 'due' => $d->due_date ? date('d/m/Y', strtotime($d->due_date)) : '',
