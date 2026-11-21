@@ -136,6 +136,20 @@ class FinancialYears
         return $blockers;
     }
 
+    /** The financial year a date falls in: the company's current year if it fits, otherwise April to March. */
+    public static function yearForDate($date)
+    {
+        $t = strtotime((string) $date);
+        if (!$t) { return null; }
+        $e = self::entity();
+        if ($e && $e->financial_year_start && $e->financial_year_end && $t >= strtotime($e->financial_year_start) && $t <= strtotime($e->financial_year_end)) {
+            return $e->financial_year;
+        }
+        $y = (int) date('Y', $t); $m = (int) date('n', $t);
+        $start = $m >= 4 ? $y : $y - 1;
+        return $start . '-' . ($start + 1);
+    }
+
     /** Things worth knowing before closing, that do not stop it. */
     public static function closeWarnings($financialYear)
     {

@@ -18,10 +18,13 @@ class LineCategoriser
         $user = Session::get('id');
         $line = DB::table('statement')->where('id', $lineId)->first();
         if (!$line) { return false; }
-        DB::table('statement')->where('id', $lineId)->update([
+        $update = [
             'head_id' => $headId, 'status' => 1, 'cat_source' => $source, 'cat_rule_id' => $ruleId, 'cat_by' => $user,
             'updated_at' => date('d-m-Y H:i:s'), 'updated_by' => $user,
-        ]);
+        ];
+        // Old lines have no financial year; without one they would be left out of every report.
+        if (empty($line->fyear) && ($fy = FinancialYears::yearForDate($line->st_date))) { $update['fyear'] = $fy; }
+        DB::table('statement')->where('id', $lineId)->update($update);
         self::siblings($line)->update(['status' => 1]);
         return true;
     }
