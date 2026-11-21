@@ -126,13 +126,14 @@ class VoucherController extends Controller
 
         $lines = DB::table('statement as s')
             ->leftJoin('head as h', 'h.id', '=', 's.head_id')
+            ->leftJoin('departments as dp', 'dp.id', '=', 's.department_id')
             ->where('s.voucher_id', $voucher->id)
             ->orderBy('s.id')
-            ->get(['s.*', 'h.name as head_name']);
+            ->get(['s.*', 'h.name as head_name', 'dp.name as department_name']);
         if ($voucher->status === 'draft') {
             // a draft is not in the books: show its working lines
             $lines = DB::table('voucher_draft_lines as d')->leftJoin('head as h', 'h.id', '=', 'd.head_id')->where('d.voucher_id', $voucher->id)->orderBy('d.line_no')
-                ->get(['d.*', 'h.name as head_name'])->map(function ($d) use ($voucher) {
+                ->leftJoin('departments as dp', 'dp.id', '=', 'd.department_id')->get(['d.*', 'h.name as head_name', 'dp.name as department_name'])->map(function ($d) use ($voucher) {
                     $d->st_date = $voucher->voucher_date; $d->remark = $d->narration; $d->fyear = $voucher->fyear; $d->status = 0; return $d;
                 });
         }

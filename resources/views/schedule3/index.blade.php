@@ -8,7 +8,8 @@
 @php
    $b = $s['bs']; $p = $s['pl']; $prev = $s['prev_year'];
    $fmt = function($v){ if($v === null){ return ''; } if($v == 0){ return '-'; } return $v < 0 ? '('.number_format(abs($v)).')' : number_format($v); };
-   $tabs = ['bs'=>'Balance sheet','pl'=>'Profit and loss','notes'=>'Notes','ageing'=>'Ageing','checks'=>'Checks'];
+   $tabs = ['bs'=>'Balance sheet','pl'=>'Profit and loss','dept'=>'By department','tb'=>'Trial balance','notes'=>'Notes','ageing'=>'Ageing','checks'=>'Checks'];
+   $dq = $dept ? '&dept='.$dept : '';
    $ck = $s['checks'];
    $warn = abs($ck['bs_difference'])>0.5 || count($ck['unmapped']) || count($ck['clear']) || $ck['uncategorised'];
 @endphp
@@ -25,6 +26,8 @@
       <input type="hidden" name="tab" value="{{ $tab }}">
       <label style="display:inline-flex;gap:6px;align-items:center;margin:0">Financial year
          <select name="year" class="form-select" style="width:auto;font-weight:700;color:var(--fna-green)" onchange="this.form.submit()">@foreach($year_options as $y)<option value="{{ $y }}" @if($y==$year) selected @endif>{{ $y }}@if(!\App\Support\FinancialYears::isOpen($y)) (closed)@endif</option>@endforeach</select></label>
+      <label style="display:inline-flex;gap:6px;align-items:center;margin:0">Department
+         <select name="dept" class="form-select" style="width:auto" onchange="this.form.submit()"><option value="all">All</option>@foreach($departments as $dd)<option value="{{ $dd->id }}" @if((string)$dept===(string)$dd->id) selected @endif>{{ $dd->name }}</option>@endforeach<option value="none" @if($dept==='none') selected @endif>No department</option></select></label>
       <label style="display:inline-flex;gap:6px;align-items:center;margin:0">Amounts in
          <select name="unit" class="form-select" style="width:auto" onchange="this.form.submit()">@foreach($units as $k=>$u)<option value="{{ $k }}" @if($k==$unit) selected @endif>{{ ucfirst($u[1]) }}</option>@endforeach</select></label>
       <a class="btn btn-outline-primary" href="{{ url('merchant/financial-statements/export?year='.$year.'&unit='.$unit) }}">Excel</a>
@@ -32,7 +35,7 @@
    </form>
 </div>
 <div class="fna-radios mb-2 no-print">
-   @foreach($tabs as $k=>$t)<label class="{{ $k===$tab ? 'on' : '' }}"><a href="?tab={{ $k }}&year={{ $year }}&unit={{ $unit }}" style="color:inherit;text-decoration:none">{{ $t }}@if($k==='checks' && $warn) &nbsp;!@endif</a></label>@endforeach
+   @foreach($tabs as $k=>$t)<label class="{{ $k===$tab ? 'on' : '' }}"><a href="?tab={{ $k }}&year={{ $year }}&unit={{ $unit }}{{ $dq }}" style="color:inherit;text-decoration:none">{{ $t }}@if($k==='checks' && $warn) &nbsp;!@endif</a></label>@endforeach
 </div>
 <div style="text-align:center;margin:4px 0 8px"><div style="font-size:18px;font-weight:700">{{ $entity ? $entity->name : '' }}</div>
    <div class="text-muted" style="font-size:12px">{{ $tab==='bs' ? 'Balance sheet as at 31 March '.substr($year,-4) : ($tab==='pl' ? 'Statement of profit and loss for the year ended 31 March '.substr($year,-4) : ($tab==='notes' ? 'Notes forming part of the financial statements' : ($tab==='ageing' ? 'Ageing as at '.date('d/m/Y',strtotime($asat)) : 'Checks before you rely on these statements'))) }} &middot; Schedule III (Division I) &middot; amounts in &#8377; {{ $s['unit_name'] }}</div></div>
@@ -68,6 +71,22 @@
    <tr><td>VI. Tax expense</td><td style="text-align:center">{{ $p['tax']['note'] }}</td><td class="n">{{ $fmt($p['tax']['cur']) }}</td><td class="n">{{ $fmt($p['tax']['prev']) }}</td></tr>
    <tr class="tot"><td>VII. Profit for the year (V &minus; VI)</td><td></td><td class="n">{{ $fmt($p['profit']['cur']) }}</td><td class="n">{{ $fmt($p['profit']['prev']) }}</td></tr>
    </tbody></table></div>
+@elseif($tab==='dept')
+@php $f2 = $byDept['factor']; $v2 = fn($v) => (int)round($v/$f2) == 0 ? '-' : ((int)round($v/$f2) < 0 ? '('.number_format(abs((int)round($v/$f2))).')' : number_format((int)round($v/$f2))); @endphp
+<div class="fna-tablebox s3" style="max-width:1100px;margin:auto"><table class="table">
+   <thead><tr><th>Statement of profit and loss by department</th>@foreach($byDept['cols'] as $c)<th style="text-align:right">{{ $c['name'] }}</th>@endforeach<th style="text-align:right">Total</th></tr></thead><tbody>
+   @foreach($byDept['lines'] as [$k,$label])
+      <tr class="{{ $k==='profit' ? 'tot' : '' }}"><td>{{ $label }}</td>@foreach($byDept['cols'] as $c)<td class="n">{{ $v2($byDept['data'][$c['key']][$k] ?? 0) }}</td>@endforeach<td class="n">{{ $v2($byDept['totals'][$k] ?? 0) }}</td></tr>
+   @endforeach
+   </tbody></table></div>
+<div class="fna-foot-note" style="text-align:center">Entries carry a department when it is chosen on a journal row or an invoice or bill line. Everything else shows under "No department". Columns may differ from the total by rounding.</div>
+@elseif($tab==='tb')
+<div class="fna-tablebox s3" style="max-width:900px;margin:auto"><table class="table">
+   <thead><tr><th>Account</th><th style="text-align:right;width:160px">Debit</th><th style="text-align:right;width:160px">Credit</th></tr></thead><tbody>
+   @foreach($tb['rows'] as $r)<tr><td>{{ $r['name'] }}</td><td class="n">{{ $r['debit'] ? number_format($r['debit'],2) : '' }}</td><td class="n">{{ $r['credit'] ? number_format($r['credit'],2) : '' }}</td></tr>@endforeach
+   <tr class="tot"><td>Total</td><td class="n">{{ number_format($tb['debit'],2) }}</td><td class="n">{{ number_format($tb['credit'],2) }}</td></tr>
+   </tbody></table></div>
+<div class="fna-foot-note" style="text-align:center">{{ $dept ? 'For the department chosen above. Pick "All" to see the whole company.' : 'Whole company.' }} A single department will not balance on its own, because the other side of an entry (a bank or a payable) usually has no department.</div>
 @elseif($tab==='notes')
 @php $f = $s['factor']; $nf = fn($v) => $v===null ? '' : ((int)round($v/$f) == 0 ? '-' : ((int)round($v/$f) < 0 ? '('.number_format(abs((int)round($v/$f))).')' : number_format((int)round($v/$f)))); @endphp
 @forelse($s['notes'] as $n)

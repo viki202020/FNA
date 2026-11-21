@@ -55,9 +55,12 @@ class Schedule3
     }
 
     /** Net balance (debit minus credit) of every head for the year, opening entries included. */
-    private static function balances($fyear)
+    private static function balances($fyear, $dept = null)
     {
-        $rows = DB::table('statement')->where('merchant_id', Session::get('merchant_id'))->where('status', 1)->where('fyear', $fyear)
+        $q = DB::table('statement')->where('merchant_id', Session::get('merchant_id'))->where('status', 1)->where('fyear', $fyear);
+        // department filter: null = everything, 'none' = entries with no department, a number = that department
+        if ($dept === 'none') { $q->whereNull('department_id'); } elseif ($dept !== null && $dept !== '' && $dept !== 'all') { $q->where('department_id', (int) $dept); }
+        $rows = $q
             ->selectRaw("head_id, SUM(CAST(NULLIF(NULLIF(REPLACE(debit,',',''),'-'),'') AS DECIMAL(16,2))) AS dr, SUM(CAST(NULLIF(NULLIF(REPLACE(credit,',',''),'-'),'') AS DECIMAL(16,2))) AS cr")
             ->groupBy('head_id')->get();
         $out = [];
@@ -66,9 +69,9 @@ class Schedule3
     }
 
     /** All the figures for one year: line totals, per-head detail, unmapped accounts and the profit. */
-    private static function figures($fyear, $map)
+    private static function figures($fyear, $map, $dept = null)
     {
-        $bal = self::balances($fyear);
+        $bal = self::balances($fyear, $dept);
         $heads = DB::table('head')->join('account_type as t', 't.id', '=', 'head.account_type_id')->get(['head.id', 'head.name', 't.name as type', 't.parent_id'])->keyBy('id');
         $lines = []; $detail = []; $unmapped = []; $clear = [];
         foreach ($bal as $hid => $net) {
@@ -114,13 +117,13 @@ class Schedule3
         return ($start - 1) . '-' . $start;
     }
 
-    public static function build($fyear, $unit = 'thousands')
+    public static function build($fyear, $unit = 'thousands', $dept = null)
     {
         $map = self::mapping();
-        $cur = self::figures($fyear, $map);
+        $cur = self::figures($fyear, $map, $dept);
         $prevYear = self::previousYear($fyear);
         $hasPrev = DB::table('statement')->where('merchant_id', Session::get('merchant_id'))->where('status', 1)->where('fyear', $prevYear)->exists();
-        $prev = $hasPrev ? self::figures($prevYear, $map) : null;
+        $prev = $hasPrev ? self::figures($prevYear, $map, $dept) : null;
         [$factor, $unitName] = self::UNITS[$unit] ?? self::UNITS['thousands'];
         $r = fn($v) => $v === null ? null : (int) round($v / $factor);
 
@@ -218,6 +221,40 @@ class Schedule3
 
     /** Net balance (debit minus credit) of every head for a year, opening entries included. */
     public static function headBalances($fyear) { return self::balances($fyear); }
+
+    /** Profit and loss lines side by side for each department (and entries with no department). */
+    public static function byDepartment($fyear, $unit = 'thousands')
+    {
+        $map = self::mapping();
+        [$factor, $unitName] = self::UNITS[$unit] ?? self::UNITS['thousands'];
+        $depts = DB::table('departments')->where('merchant_id', Session::get('merchant_id'))->orderBy('name')->get(['id', 'name']);
+        $cols = [['key' => 'none', 'name' => 'No department']];
+        foreach ($depts as $d) { $cols[] = ['key' => (string) $d->id, 'name' => $d->name]; }
+        $lines = [['revenue', 'Revenue from operations'], ['other_income', 'Other income'], ['employee', 'Employee benefit expense'], ['finance', 'Finance costs'], ['other_exp', 'Other expenses'], ['tax', 'Tax expense']];
+        $data = []; $totals = array_fill_keys(array_column($lines, 0), 0.0); $totals['profit'] = 0.0; $any = [];
+        foreach ($cols as $c) {
+            $f = self::figures($fyear, $map, $c['key']);
+            foreach ($lines as [$k]) { $v = $f['lines'][$k] ?? 0; $data[$c['key']][$k] = $v; $totals[$k] += $v; if (abs($v) > 0.004) { $any[$c['key']] = true; } }
+            $data[$c['key']]['profit'] = $f['profit']; $totals['profit'] += $f['profit'];
+        }
+        $cols = array_values(array_filter($cols, fn($c) => !empty($any[$c['key']]) || $c['key'] === 'none'));
+        return ['cols' => $cols, 'lines' => array_merge($lines, [['profit', 'Profit for the year']]), 'data' => $data, 'totals' => $totals, 'unit_name' => $unitName, 'factor' => $factor];
+    }
+
+    /** Trial balance: every account with its debit or credit balance, optionally for one department. */
+    public static function trialBalance($fyear, $dept = null)
+    {
+        $bal = self::balances($fyear, $dept);
+        $names = DB::table('head')->pluck('name', 'id');
+        $rows = []; $dr = 0; $cr = 0;
+        foreach ($bal as $hid => $net) {
+            if (abs($net) < 0.005) { continue; }
+            $rows[] = ['name' => $names[$hid] ?? ('Account ' . $hid), 'debit' => $net > 0 ? $net : 0, 'credit' => $net < 0 ? -$net : 0];
+            if ($net > 0) { $dr += $net; } else { $cr += -$net; }
+        }
+        usort($rows, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+        return ['rows' => $rows, 'debit' => round($dr, 2), 'credit' => round($cr, 2)];
+    }
 
     /** Ageing of open invoices (receivables) or bills (payables) as at a date, in the Schedule III bands. */
     public static function ageing($kind, $asAt)

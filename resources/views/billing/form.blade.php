@@ -25,7 +25,7 @@
    <div id="partyAlert" class="alert alert-danger" style="display:none;max-width:1000px"></div>
    <div class="fna-tablebox">
       <table class="table" id="lines">
-         <thead><tr><th>{{ $S ? 'Item' : 'Description' }}</th>@if(!$S)<th>Expense account</th>@endif<th style="width:80px">Qty</th><th style="width:110px">Rate</th><th style="width:80px">GST %</th><th style="width:120px;text-align:right">Amount</th></tr></thead>
+         <thead><tr><th>{{ $S ? 'Item' : 'Description' }}</th>@if(!$S)<th>Expense account</th>@endif<th style="width:130px">Department</th><th style="width:80px">Qty</th><th style="width:110px">Rate</th><th style="width:80px">GST %</th><th style="width:120px;text-align:right">Amount</th></tr></thead>
          <tbody>
             @for($i=0;$i<5;$i++)
             <tr class="ln">
@@ -35,6 +35,7 @@
                   <input type="hidden" name="hsn[]">
                </td>
                @if(!$S)<td><select class="form-select" name="head_id[]"><option value="">Select</option>@foreach($heads as $h)<option value="{{ $h->id }}">{{ $h->name }}</option>@endforeach</select></td>@endif
+               <td><select class="form-select" name="department_id[]"><option value="">-</option>@foreach($departments as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach</select></td>
                <td><input class="form-control qty" name="qty[]" value="1"></td>
                <td><input class="form-control rate" name="rate[]"></td>
                <td><input class="form-control tax" name="tax_rate[]" value="18"></td>

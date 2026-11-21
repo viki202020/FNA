@@ -48,10 +48,11 @@ class BillingController extends Controller
         $parties = Customer::where('merchant', $this->merchant())->where('status', 1)
             ->where('type', $kind === 'sales' ? 1 : 4)->orderBy('first_name')->get();
         $heads = DB::table('head')->where('status', 1)->orderBy('name')->get(['id', 'name']);
+        $departments = DB::table('departments')->where('merchant_id', $this->merchant())->where('active', 1)->orderBy('name')->get(['id', 'name']);
         $products = DB::table('products')->where('merchant_id', $this->merchant())->where('status', 1)->orderBy('name')->get();
         $entity = FinancialYears::entity();
         $issues = []; foreach ($parties as $pp) { $issues[$pp->id] = \App\Support\PartyChecks::issues($pp, $kind); }
-        return view('billing.form', ['issues' => $issues, 'kind' => $kind, 'parties' => $parties, 'heads' => $heads, 'products' => $products, 'entity' => $entity]);
+        return view('billing.form', ['departments' => $departments, 'issues' => $issues, 'kind' => $kind, 'parties' => $parties, 'heads' => $heads, 'products' => $products, 'entity' => $entity]);
     }
 
     public function store(Request $request)
@@ -72,7 +73,7 @@ class BillingController extends Controller
             $lines[] = [
                 'description' => $desc, 'qty' => $qty, 'rate' => $rate, 'tax_rate' => (float) ($request->input('tax_rate')[$i] ?? 0),
                 'head_id' => $request->input('head_id')[$i] ?? null, 'hsn' => $request->input('hsn')[$i] ?? null,
-                'product_id' => $request->input('product_id')[$i] ?? null,
+                'product_id' => $request->input('product_id')[$i] ?? null, 'department_id' => $request->input('department_id')[$i] ?? null,
             ];
         }
         if (!$lines) { return back()->withInput()->withErrors(['description' => 'Add at least one line with an amount.']); }
@@ -93,7 +94,7 @@ class BillingController extends Controller
                 DB::table('billing_doc_lines')->insert([
                     'doc_id' => $id, 'product_id' => $l['product_id'] ?: null, 'head_id' => $l['head_id'] ?: null,
                     'description' => $l['description'], 'hsn' => $l['hsn'], 'qty' => $l['qty'], 'rate' => $l['rate'],
-                    'tax_rate' => $l['tax_rate'], 'amount' => round($l['qty'] * $l['rate'], 2), 'created_at' => now(), 'updated_at' => now(),
+                    'tax_rate' => $l['tax_rate'], 'department_id' => $l['department_id'] ?: null, 'amount' => round($l['qty'] * $l['rate'], 2), 'created_at' => now(), 'updated_at' => now(),
                 ]);
             }
             return $id;

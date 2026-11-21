@@ -84,18 +84,21 @@ class BillingPosting
                 'reference' => $doc->reference, 'created_by' => Session::get('id'), 'created_at' => now(), 'updated_at' => now(),
             ]);
             $out = [];
-            $add = function ($head, $dr, $cr) use (&$out) {
+            $add = function ($head, $dr, $cr, $dept = null) use (&$out) {
                 if ((float) $dr == 0 && (float) $cr == 0) { return; }
-                $out[] = ['head' => $head, 'dr' => $dr, 'cr' => $cr];
+                $out[] = ['head' => $head, 'dr' => $dr, 'cr' => $cr, 'dept' => $dept];
             };
             if ($sales) {
                 $add(BillingSettings::get('receivable_head'), $doc->total, 0);
-                $add(BillingSettings::get('sales_head'), 0, $doc->subtotal);
+                // sales are split by the department chosen on each line, so the profit and loss can be read by department
+                $byDept = [];
+                foreach ($lines as $l) { $byDept[(int) $l->department_id] = ($byDept[(int) $l->department_id] ?? 0) + round($l->qty * $l->rate, 2); }
+                foreach ($byDept as $dept => $amt) { $add(BillingSettings::get('sales_head'), 0, round($amt, 2), $dept ?: null); }
                 $add(BillingSettings::get('cgst_out'), 0, $doc->cgst);
                 $add(BillingSettings::get('sgst_out'), 0, $doc->sgst);
                 $add(BillingSettings::get('igst_out'), 0, $doc->igst);
             } else {
-                foreach ($lines as $l) { $add($l->head_id, $l->amount, 0); }
+                foreach ($lines as $l) { $add($l->head_id, $l->amount, 0, $l->department_id ?: null); }
                 $add(BillingSettings::get('cgst_in'), $doc->cgst, 0);
                 $add(BillingSettings::get('sgst_in'), $doc->sgst, 0);
                 $add(BillingSettings::get('igst_in'), $doc->igst, 0);
@@ -113,7 +116,7 @@ class BillingPosting
                     'credit' => $o['cr'] > 0 ? number_format($o['cr'], 2, '.', '') : '-',
                     'remark' => ($sales ? 'Invoice ' : 'Bill ') . $number . ' ' . $doc->party_name,
                     'head_id' => $o['head'], 'st_date' => $doc->doc_date, 'fyear' => $fyear,
-                    'status' => 1, 'opening' => 0, 'merchant_id' => $doc->merchant_id,
+                    'department_id' => $o['dept'] ?? null, 'status' => 1, 'opening' => 0, 'merchant_id' => $doc->merchant_id,
                     'created_at' => date('Y-m-d H:i:s'), 'created_by' => Session::get('id') ?: 0,
                 ]);
             }

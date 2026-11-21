@@ -26,20 +26,21 @@
    </div>
    <div class="fna-tablebox">
       <table class="table">
-         <thead><tr><th>Date</th><th>Account</th><th>Narration</th><th style="text-align:right">Debit</th><th style="text-align:right">Credit</th><th>State</th></tr></thead>
+         <thead><tr><th>Date</th><th>Account</th><th>Narration</th><th>Department</th><th style="text-align:right">Debit</th><th style="text-align:right">Credit</th><th>State</th></tr></thead>
          <tbody>
          @foreach($lines as $l)
             <tr>
                <td>{{ $l->st_date }}</td>
                <td>@if($l->head_id)<a href="{{ url('/merchant/ledger-by-head/'.$l->head_id.'/'.$l->fyear) }}" style="font-weight:700;text-decoration:none">{{ $l->head_name }}</a>@else <strong>! Not yet categorised</strong>@endif</td>
                <td>{{ $l->remark }}</td>
+               <td>{{ $l->department_name ?? '' }}</td>
                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ (float)$l->debit ? number_format((float)$l->debit,2) : '' }}</td>
                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ (float)$l->credit ? number_format((float)$l->credit,2) : '' }}</td>
                <td style="color:var(--fna-muted)">{{ $voucher->status==='draft' ? 'Draft: not in the books' : ($l->status ? 'In the books' : 'Uncategorised') }}</td>
             </tr>
          @endforeach
          <tr style="font-weight:700;border-top:2px solid var(--fna-green)">
-            <td colspan="3" style="text-align:right">Total</td>
+            <td colspan="4" style="text-align:right">Total</td>
             <td style="text-align:right;font-variant-numeric:tabular-nums">{{ number_format($total_debit,2) }}</td>
             <td style="text-align:right;font-variant-numeric:tabular-nums">{{ number_format($total_credit,2) }}</td>
             <td>@if(abs($total_debit-$total_credit)>0.005)! Out by {{ number_format(abs($total_debit-$total_credit),2) }}@else Balanced ✓ @endif</td>
