@@ -116,7 +116,7 @@ class BillingController extends Controller
         $settlements = DB::table('billing_settlements as s')->join('statement as st', 'st.id', '=', 's.statement_id')
             ->where('s.doc_id', $id)->get(['s.*', 'st.st_date', 'st.remark', 'st.voucher_no']);
         $heads = DB::table('head')->pluck('name', 'id');
-        $notes = DB::table('payment_notes')->where('doc_id', $id)->where('mode', 'Cheque')->orderBy('id')->get();
+        $notes = DB::table('payment_notes')->where('doc_id', $id)->whereIn('mode', ['Cheque', 'Cash'])->orderBy('id')->get();
         $lineSettlements = DB::table('billing_settlements as s')->join('statement as st', 'st.id', '=', 's.statement_id')->where('s.doc_id', $id)
             ->where('st.voucher_no', 'not like', 'PYV-%')->where('st.voucher_no', 'not like', 'RCV-%')->get(['s.*', 'st.st_date', 'st.remark', 'st.voucher_no']);
         $banks = DB::table('head')->where('account_type_id', 3)->where('status', 1)->orderBy('name')->get(['id', 'name']);

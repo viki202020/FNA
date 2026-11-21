@@ -644,7 +644,9 @@ class MerchantController extends Controller{
       );
       $import = new UsersImport($data);
       Excel::import($import, $req->file('csv_file')->store('temp'));
+      $returns = \App\Support\ReturnDetector::scan();   // payments the bank has taken back are recognised and reversed
       return redirect('merchant/uncategorized-data')->with('bank_upload_summary', [
+         'returns'  => $returns,
          'year'     => FinancialYears::current(),
          'saved'    => $import->saved,
          'rejected' => $import->rejected,
@@ -737,8 +739,8 @@ class MerchantController extends Controller{
                $o = $others[$row->voucher_no] ?? null;
                if(!$o || (int)$o->status !== 1){ $data[$k]->account = 'Not categorised'; $data[$k]->how = ''; continue; }
                $data[$k]->account = $heads[$o->head_id] ?? '';
-               $data[$k]->how = $o->cat_source==='rule' ? 'By rule'.(isset($ruleNames[$o->cat_rule_id]) ? ': '.$ruleNames[$o->cat_rule_id] : '')
-                              : ($o->cat_source==='person' ? 'By '.($users[$o->cat_by] ?? 'a user') : '');
+               $data[$k]->how = $o->cat_source==='return' ? 'Returned payment' : ($o->cat_source==='rule' ? 'By rule'.(isset($ruleNames[$o->cat_rule_id]) ? ': '.$ruleNames[$o->cat_rule_id] : '')
+                              : ($o->cat_source==='person' ? 'By '.($users[$o->cat_by] ?? 'a user') : ''));
             }
          }
          return Datatables::of($data)

@@ -22,10 +22,14 @@ class OpenDocuments
         if (!isset(self::$cache[$key])) {
             self::$cache[$key] = [];
             if (Schema::hasTable('billing_docs')) {
-                $rows = DB::table('billing_docs')->where('merchant_id', $m)->where('kind', $kind)
-                    ->whereIn('status', ['open', 'part'])->get(['total', 'settled']);
+                $rows = DB::table('billing_docs as d')->leftJoin('customer as c', 'c.id', '=', 'd.party_id')->where('d.merchant_id', $m)->where('d.kind', $kind)
+                    ->whereIn('d.status', ['open', 'part'])->get(['d.total', 'd.settled', 'd.subtotal', 'c.tds_status', 'c.tds_rate']);
                 foreach ($rows as $r) {
-                    self::$cache[$key][number_format($r->total - $r->settled, 2, '.', '')] = true;
+                    $bal = $r->total - $r->settled;
+                    self::$cache[$key][number_format($bal, 2, '.', '')] = true;
+                    if ((int) $r->tds_status === 1 && is_numeric($r->tds_rate) && (float) $r->tds_rate > 0) {   // the amount left after the party deducts TDS
+                        self::$cache[$key][number_format($bal - round($r->subtotal * (float) $r->tds_rate / 100, 2), 2, '.', '')] = true;
+                    }
                 }
             }
         }

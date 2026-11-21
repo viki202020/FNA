@@ -40,7 +40,8 @@
    <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/note') }}" class="d-flex flex-wrap gap-2 align-items-end" style="max-width:1000px" id="payform">@csrf
       <div><label>MODE</label><select class="form-select" name="mode" id="pmode">@foreach(['Cheque','NEFT','RTGS','IMPS','UPI','Cash','Other'] as $m)<option>{{ $m }}</option>@endforeach</select></div>
       <div><label>{{ $S ? 'DATE RECEIVED' : 'DATE PAID' }} (CHEQUE DATE)</label><input type="date" class="form-control" name="pay_date" required value="{{ date('Y-m-d') }}"></div>
-      <div><label>AMOUNT</label><input class="form-control" name="amount" required value="{{ number_format($doc->total-$doc->settled,2,'.','') }}"></div>
+      <div><label>AMOUNT {{ $S ? 'RECEIVED' : 'PAID' }}</label><input class="form-control" name="amount" required value="{{ number_format($doc->total-$doc->settled,2,'.','') }}"></div>
+      <div><label>TDS DEDUCTED</label><input class="form-control" name="tds" style="max-width:120px" value="" placeholder="0.00"></div>
       <div class="chq"><label>CHEQUE NO.</label><input class="form-control" name="cheque_no"></div>
       <div class="chq"><label>BANK ACCOUNT</label><select class="form-select" name="bank_head_id"><option value="">Select</option>@foreach($banks as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach</select></div>
       <div class="nochq" style="display:none"><label>UTR / REFERENCE</label><input class="form-control" name="reference"></div>
@@ -51,15 +52,17 @@
    (function(){var m=document.getElementById('pmode');function f(){var c=m.value==='Cheque';
      document.querySelectorAll('#payform .chq').forEach(function(e){e.style.display=c?'':'none';});
      document.querySelectorAll('#payform .nochq').forEach(function(e){e.style.display=c?'none':'';});
-     document.getElementById('payhelp').textContent=c?'A cheque is posted on this date and goes into the cheque register. It stays Outstanding until the bank line is matched.':'This is only a note. Nothing is booked until the bank line arrives and you match it on Receipts to match.';}
+     var cash=m.value==='Cash';
+     document.querySelectorAll('#payform .nochq').forEach(function(e){e.style.display=(c||cash)?'none':'';});
+     document.getElementById('payhelp').textContent=c?'A cheque is posted on this date and goes into the cheque register. It stays Outstanding until the bank line is matched.':(cash?'Cash is posted on this date to Cash in hand. It never goes through the bank file.':'This is only a note. Nothing is booked until the bank line arrives and you match it on Receipts to match.');}
      m.onchange=f;f();})();
    </script>
 @endif
 @php
    $isReceipt = $S;
    $rows = [];
-   foreach($notes as $n){ $rows[] = ['type'=>'note','ref'=>$n->id,'date'=>$n->pay_date,'what'=>'Cheque '.$n->cheque_no,'amount'=>$n->amount,'mode'=>'Cheque','by'=>$n->created_by,
-      'status'=>['outstanding'=>'Outstanding','cleared'=>'Cleared','dishonoured'=>'Dishonoured','reversed'=>'Reversed'][$n->status] ?? $n->status,'can'=>$n->status==='outstanding','why'=>$n->reason]; }
+   foreach($notes as $n){ $rows[] = ['type'=>'note','ref'=>$n->id,'date'=>$n->pay_date,'what'=>($n->mode==='Cheque' ? 'Cheque '.$n->cheque_no : 'Cash').($n->tds_amount>0 ? ' (plus TDS '.number_format($n->tds_amount,2).')' : ''),'amount'=>$n->amount,'mode'=>$n->mode,'by'=>$n->created_by,
+      'status'=>['outstanding'=>'Outstanding','posted'=>'Paid in cash','cleared'=>'Cleared','dishonoured'=>'Dishonoured','reversed'=>'Reversed'][$n->status] ?? $n->status,'can'=>in_array($n->status,['outstanding','posted']),'why'=>$n->reason]; }
    $seen = [];
    foreach($lineSettlements as $s2){ $rows[] = ['type'=>'line','ref'=>$s2->statement_id,'date'=>$s2->st_date,'what'=>'Bank line '.$s2->voucher_no.': '.$s2->remark,'amount'=>$s2->amount,'mode'=>'Bank','by'=>$s2->chosen_by,
       'status'=>$s2->reversed_at ? 'Reversed' : 'Matched','can'=>!$s2->reversed_at,'why'=>null]; }
@@ -92,7 +95,7 @@
 </div>
 <script>
 (function(){
-   var lists={Cheque:@json($reasonsFor('Cheque')),Bank:@json($reasonsFor('Bank'))};
+   var lists={Cheque:@json($reasonsFor('Cheque')),Cash:@json($reasonsFor('Cash')),Bank:@json($reasonsFor('Bank'))};
    var sc=document.getElementById('revscrim'),sel=document.getElementById('revreason'),box=document.getElementById('revtextbox');
    function fill(mode){sel.innerHTML='<option value="">Select a reason</option>';var l=lists[mode]||lists.Bank;for(var k in l){var o=document.createElement('option');o.value=k;o.textContent=l[k];sel.appendChild(o);}box.style.display='none';}
    sel.onchange=function(){box.style.display=sel.value==='OTHERS'?'':'none';};
