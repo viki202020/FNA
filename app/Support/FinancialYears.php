@@ -52,10 +52,29 @@ class FinancialYears
             ->all();
     }
 
+    /**
+     * Which years accept entries. At most TWO consecutive years are open at any time:
+     *   - normally the company's current (oldest unclosed) year, plus the next year once the current one has ended;
+     *   - if an administrator re-opened the year just before the current one, those two are open and the next year stays shut.
+     * A re-opened year older than that is ignored: a third open year is never allowed.
+     */
     public static function openYears()
     {
-        $years = array_merge([self::current()], self::reopened(), [self::nextYearIfStarted()]);
-        return array_values(array_unique(array_filter($years)));
+        return self::chooseOpen(self::current(), self::reopened(), self::nextYearIfStarted());
+    }
+
+    /** The rule on its own, so it can be tested: [current, reopened years, next year or null] => open years. */
+    public static function chooseOpen($current, array $reopened, $nextStarted)
+    {
+        if (!$current) { return []; }
+        $startYear = (int) substr($current, 0, 4);
+        $previous = ($startYear - 1) . '-' . $startYear;
+        if (in_array($previous, $reopened, true)) {
+            return [$previous, $current];
+        }
+        $open = [$current];
+        if ($nextStarted) { $open[] = $nextStarted; }
+        return $open;
     }
 
     /** Lines with no year at all (old data) are not treated as closed. */
