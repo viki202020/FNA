@@ -236,6 +236,8 @@
                </div>
                <input type="hidden" name="customer_id" id="customer_id">
             </div>
+            <div class="row"><div class="col-md-4 mb-3"><label>THIS IS A</label><div><label style="display:inline;font-weight:400"><input type="radio" name="party_type" value="1" checked> Customer</label> &nbsp; <label style="display:inline;font-weight:400"><input type="radio" name="party_type" value="4"> Supplier</label></div></div></div>
+            @include('account._party_tax')
             <div class="mt-3">
                <button class="btn btn-gray-800 mt-2 animate-up-2" type="submit">Save all</button>
                @if(session('success_msg'))
@@ -357,6 +359,8 @@
       $("#shipping_country").val(shipping_country);
       $("#category").val(category);
       $("#customer_id").val(id);
+      $("[name=pan]").val($(this).attr("data-pan")); $("[name=tds_applicable]").val($(this).attr("data-tds_status")=="1"?"Yes":($(this).attr("data-tds_status")=="0"?"No":""));
+      $("[name=tds_section]").val($(this).attr("data-tds_section")); $("[name=tds_rate]").val($(this).attr("data-tds_rate")); $("input[name=party_type][value="+($(this).attr("data-type")=="4"?4:1)+"]").prop("checked",true);
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       setTimeout($("#cover-spin").hide(), 5000);

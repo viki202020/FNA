@@ -362,6 +362,7 @@
                      </div>
                      <input type="hidden" name="customer_id" id="customer_id">
                   </div>
+                  @include('account._party_tax')
                   <div class="mt-3">
                      <button class="btn btn-gray-800 mt-2 animate-up-2 save_supplier" type="button">Save all</button>
                      @if(session('success_msg'))
@@ -764,6 +765,7 @@
                            </div>
                            <input type="hidden" name="customer_id" id="customer_id">
                         </div>
+                        @include('account._party_tax')
                         <div class="mt-3">
                            <button class="btn btn-gray-800 mt-2 animate-up-2 save_debtor" type="submit">Save all</button>
                            @if(session('success_msg'))

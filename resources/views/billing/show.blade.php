@@ -13,6 +13,8 @@
 </div>
 @if(session('success_msg'))<div class="alert alert-success">{{ session('success_msg') }}</div>@endif
 @if(session('error_msg'))<div class="alert alert-danger">{{ session('error_msg') }}</div>@endif
+@if(session('warn_msg'))<div class="alert alert-danger">{{ session('warn_msg') }}</div>@endif
+@if(count($partyIssues))<div class="alert alert-danger" style="max-width:1000px"><strong>Details missing for {{ $doc->party_name }}:</strong>@foreach($partyIssues as $i)<div>&bull; {{ $i['text'] }}</div>@endforeach<div style="margin-top:4px">Add them under <a href="{{ url('merchant/customers') }}">Customers</a>.</div></div>@endif
 <p class="text-muted mb-2">{{ $L['party'] }}: <strong style="color:var(--fna-ink)">{{ $doc->party_name }}</strong> &middot; Date {{ date('d/m/Y', strtotime($doc->doc_date)) }} &middot; Due {{ $doc->due_date ? date('d/m/Y', strtotime($doc->due_date)) : '-' }} &middot; {{ $doc->supply==='intra' ? 'CGST + SGST' : 'IGST' }}@if($doc->reference) &middot; Their number {{ $doc->reference }}@endif</p>
 <div class="fna-tablebox" style="max-width:1000px">
    <table class="table">

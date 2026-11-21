@@ -50,7 +50,8 @@ class BillingController extends Controller
         $heads = DB::table('head')->where('status', 1)->orderBy('name')->get(['id', 'name']);
         $products = DB::table('products')->where('merchant_id', $this->merchant())->where('status', 1)->orderBy('name')->get();
         $entity = FinancialYears::entity();
-        return view('billing.form', ['kind' => $kind, 'parties' => $parties, 'heads' => $heads, 'products' => $products, 'entity' => $entity]);
+        $issues = []; foreach ($parties as $pp) { $issues[$pp->id] = \App\Support\PartyChecks::issues($pp, $kind); }
+        return view('billing.form', ['issues' => $issues, 'kind' => $kind, 'parties' => $parties, 'heads' => $heads, 'products' => $products, 'entity' => $entity]);
     }
 
     public function store(Request $request)
@@ -97,6 +98,8 @@ class BillingController extends Controller
             }
             return $id;
         });
+        $warn = collect(\App\Support\PartyChecks::issues($party, $kind))->where('level', 'warn')->pluck('text')->implode(' ');
+        if ($warn) { session()->flash('warn_msg', $party->display_name . ': ' . $warn); }
         if ($request->input('action') === 'post') {
             try {
                 $no = BillingPosting::post($id);
@@ -122,7 +125,8 @@ class BillingController extends Controller
         $banks = DB::table('head')->where('account_type_id', 3)->where('status', 1)->orderBy('name')->get(['id', 'name']);
         $party = DB::table('customer')->where('id', $doc->party_id)->first();
         $tdsSuggest = ($party && (int) $party->tds_status === 1 && is_numeric($party->tds_rate) && (float) $party->tds_rate > 0) ? ['rate' => (float) $party->tds_rate, 'amount' => round($doc->subtotal * (float) $party->tds_rate / 100, 2)] : null;
-        return view('billing.show', ['tdsSuggest' => $tdsSuggest, 'notes' => $notes, 'lineSettlements' => $lineSettlements, 'me' => Session::get('id'), 'banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
+        $partyIssues = \App\Support\PartyChecks::issues($party, $doc->kind);
+        return view('billing.show', ['partyIssues' => $partyIssues, 'tdsSuggest' => $tdsSuggest, 'notes' => $notes, 'lineSettlements' => $lineSettlements, 'me' => Session::get('id'), 'banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
     }
 
     public function post(Request $request, $id)

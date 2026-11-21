@@ -176,7 +176,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_customer" data-id="'.$row->id.'" data-title="'.$row->title.'" data-first_name="'.$row->first_name.'" data-last_name="'.$row->last_name.'" data-email="'.$row->email.'" data-phone="'.$row->phone.'" data-mobile="'.$row->mobile.'" data-display_name="'.$row->display_name.'" data-gst_type="'.$row->gst_type.'" data-gst="'.$row->gst.'" data-billing_street="'.$row->billing_street.'" data-billing_city="'.$row->billing_city.'" data-billing_state="'.$row->billing_state.'" data-billing_pincode="'.$row->billing_pincode.'" data-billing_country="'.$row->billing_country.'" data-shipping_street="'.$row->shipping_street.'" data-shipping_city="'.$row->shipping_city.'" data-shipping_state="'.$row->shipping_state.'" data-shipping_pincode="'.$row->shipping_pincode.'" data-shipping_country="'.$row->shipping_country.'" data-category="'.$row->category_id.'">Edit</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_customer" data-id="'.$row->id.'" data-title="'.$row->title.'" data-first_name="'.$row->first_name.'" data-last_name="'.$row->last_name.'" data-email="'.$row->email.'" data-phone="'.$row->phone.'" data-mobile="'.$row->mobile.'" data-display_name="'.$row->display_name.'" data-gst_type="'.$row->gst_type.'" data-gst="'.$row->gst.'" data-billing_street="'.$row->billing_street.'" data-billing_city="'.$row->billing_city.'" data-billing_state="'.$row->billing_state.'" data-billing_pincode="'.$row->billing_pincode.'" data-billing_country="'.$row->billing_country.'" data-shipping_street="'.$row->shipping_street.'" data-shipping_city="'.$row->shipping_city.'" data-shipping_state="'.$row->shipping_state.'" data-shipping_pincode="'.$row->shipping_pincode.'" data-shipping_country="'.$row->shipping_country.'" data-category="'.$row->category_id.'" data-pan="'.$row->pan.'" data-tds_status="'.$row->tds_status.'" data-tds_rate="'.$row->tds_rate.'" data-tds_section="'.$row->tds_section.'" data-type="'.$row->type.'">Edit</a>';
                return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -245,43 +245,40 @@ class MerchantController extends Controller{
          $customer->shipping_state = $shipping_state;
          $customer->shipping_pincode = $shipping_pincode;
          $customer->shipping_country = $shipping_country;
-         $customer->category_id = $category;
+ $customer->category_id = $category;
+         $this->fillPartyTax($customer, $req);
          $customer->updated_at = date('d-m-Y H:i:s');
          $customer->updated_by = Session::get('id');
          $customer->save();               
          $req->session()->flash('success_msg','Customer Update Successfully');
       }else{
-         $head = new Head;      
-         $head->name = $first_name;
-         $head->email = $email;
-         $head->phone = $phone;       
-         $head->mobile = $mobile;
-         $head->display_name = $display_name;
-         $head->gst_type = $gst_type;
-         $head->gst = $gst;
-         $head->billing_street = $billing_street;
-         $head->billing_city = $billing_city;
-         $head->billing_state = $billing_state;
-         $head->billing_pincode = $billing_pincode;
-         $head->billing_country = $billing_country;
-         $head->shipping_street = $shipping_street;
-         $head->shipping_city = $shipping_city;
-         $head->shipping_state = $shipping_state;
-         $head->shipping_pincode = $shipping_pincode;
-         $head->shipping_country = $shipping_country;
-         $head->tds_status = in_array($req->input('supp_tds_status'), ['Yes', '1', 1], true) ? 1 : 0;
-         $head->tds_rate = $req->input('supp_tds_rate');
-         $head->merchant = Session::get('merchant_id');
-         $head->created_at = date('d-m-Y H:i:s');
-         $head->created_by = Session::get('id');
-         $head->category = $req->input('supplier_category');
-         $head->account_type_id = 18;     
-         if($head->save()){
-            return response(['success' => 'Supplier created successfully.']);
-         }    
-         
+         $party = new Customer;
+         $party->type = (int) $req->input('party_type', 1) === 4 ? 4 : 1;
+         $party->title = $title; $party->first_name = $first_name; $party->last_name = $last_name; $party->email = $email; $party->phone = $phone; $party->mobile = $mobile;
+         $party->display_name = $display_name; $party->gst_type = $gst_type; $party->gst = $gst;
+         $party->billing_street = $billing_street; $party->billing_city = $billing_city; $party->billing_state = $billing_state; $party->billing_pincode = $billing_pincode; $party->billing_country = $billing_country;
+         $party->shipping_street = $shipping_street; $party->shipping_city = $shipping_city; $party->shipping_state = $shipping_state; $party->shipping_pincode = $shipping_pincode; $party->shipping_country = $shipping_country;
+         $party->opening_balance = $opening_balance; $party->opening_balance_type = $opening_balance_type; $party->opening_balance_date = $opening_balance_date;
+         $party->category_id = $category;
+         $this->fillPartyTax($party, $req);
+         $party->merchant = Session::get('merchant_id'); $party->status = 1; $party->created_at = date('d-m-Y H:i:s'); $party->created_by = Session::get('id');
+         $party->save();
+         if($req->ajax() || $req->expectsJson()){ return response(['success' => ($party->type === 4 ? 'Supplier' : 'Customer').' saved.']); }
+         $req->session()->flash('success_msg', ($party->type === 4 ? 'Supplier' : 'Customer').' saved.');
+         return redirect('merchant/customers');
       }
-            
+      return redirect('merchant/customers');
+   }
+
+   /** PAN and the TDS details of a party, from the form (the old supplier fields are still understood). */
+   private function fillPartyTax($party, Request $req){
+      $party->pan = strtoupper(trim((string)$req->input('pan'))) ?: $party->pan;
+      $applicable = $req->input('tds_applicable', $req->input('supp_tds_status'));
+      if($applicable === 'Yes' || $applicable === '1'){ $party->tds_status = 1; }
+      elseif($applicable === 'No' || $applicable === '0'){ $party->tds_status = 0; }
+      $rate = $req->input('tds_rate', $req->input('supp_tds_rate'));
+      if($rate !== null && $rate !== ''){ $party->tds_rate = $rate; }
+      if($req->input('tds_section') !== null && $req->input('tds_section') !== ''){ $party->tds_section = $req->input('tds_section'); }
    }
    public function accountHead(Request $request){
       if($request->ajax()){
@@ -1014,35 +1011,17 @@ class MerchantController extends Controller{
       $shipping_state = $req->input('shipping_state');
       $shipping_pincode = $req->input('shipping_pincode');
       $shipping_country = $req->input('shipping_country');
-      $head = new Head;      
-      $head->name = $first_name;
-      $head->email = $email;
-      $head->phone = $phone;       
-      $head->mobile = $mobile;
-      $head->display_name = $display_name;
-      $head->gst_type = $gst_type;
-      $head->gst = $gst;
-      $head->billing_street = $billing_street;
-      $head->billing_city = $billing_city;
-      $head->billing_state = $billing_state;
-      $head->billing_pincode = $billing_pincode;
-      $head->billing_country = $billing_country;
-      $head->shipping_street = $shipping_street;
-      $head->shipping_city = $shipping_city;
-      $head->shipping_state = $shipping_state;
-      $head->shipping_pincode = $shipping_pincode;
-      $head->shipping_country = $shipping_country;
-      $head->tds_status = in_array($req->input('supp_tds_status'), ['Yes', '1', 1], true) ? 1 : 0;
-      $head->tds_rate = $req->input('supp_tds_rate');
-      $head->balance = $req->input('supplier_opening_balance');
-      $head->balance_type = $req->input('supplier_open_type');
-      $head->balance_date = $req->input('supplier_opening_balance_date');
-      $head->merchant = Session::get('merchant_id');
-      $head->created_at = date('d-m-Y H:i:s');
-      $head->created_by = Session::get('id');
-      $head->category = $req->input('supplier_category');
-      $head->account_type_id = 18;
-      $head->save();
+      $party = new Customer;
+      $party->type = 4;
+      $party->title = $title; $party->first_name = $first_name; $party->last_name = $last_name; $party->email = $email; $party->phone = $phone; $party->mobile = $mobile;
+      $party->display_name = $display_name; $party->gst_type = $gst_type; $party->gst = $gst;
+      $party->billing_street = $billing_street; $party->billing_city = $billing_city; $party->billing_state = $billing_state; $party->billing_pincode = $billing_pincode; $party->billing_country = $billing_country;
+      $party->shipping_street = $shipping_street; $party->shipping_city = $shipping_city; $party->shipping_state = $shipping_state; $party->shipping_pincode = $shipping_pincode; $party->shipping_country = $shipping_country;
+      $party->opening_balance = $req->input('supplier_opening_balance'); $party->opening_balance_type = $req->input('supplier_open_type'); $party->opening_balance_date = $req->input('supplier_opening_balance_date');
+      $party->category_id = $req->input('supplier_category');
+      $this->fillPartyTax($party, $req);
+      $party->merchant = Session::get('merchant_id'); $party->status = 1; $party->created_at = date('d-m-Y H:i:s'); $party->created_by = Session::get('id');
+      $party->save();
       return response(['success' => 'Supplier created successfully.']);
    }
    public function addBank(Request $request){

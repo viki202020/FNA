@@ -22,6 +22,7 @@
       <div class="col-md-2 mb-3"><label>DUE DATE</label><input type="date" class="form-control" name="due_date" value="{{ old('due_date') }}"></div>
       @if(!$S)<div class="col-md-4 mb-3"><label>SUPPLIER'S BILL NUMBER</label><input class="form-control" name="reference" value="{{ old('reference') }}"></div>@endif
    </div>
+   <div id="partyAlert" class="alert alert-danger" style="display:none;max-width:1000px"></div>
    <div class="fna-tablebox">
       <table class="table" id="lines">
          <thead><tr><th>{{ $S ? 'Item' : 'Description' }}</th>@if(!$S)<th>Expense account</th>@endif<th style="width:80px">Qty</th><th style="width:110px">Rate</th><th style="width:80px">GST %</th><th style="width:120px;text-align:right">Amount</th></tr></thead>
@@ -55,6 +56,13 @@
 @push('script-js')
 <script>
 $(function(){
+   var issues = @json($issues);
+   $('select[name=party_id]').on('change', function(){
+      var list = issues[$(this).val()] || [], box = $('#partyAlert');
+      if(!$(this).val() || !list.length){ box.hide(); return; }
+      var h = '<strong>Details missing for this party:</strong>'; list.forEach(function(i){ h += '<div>&bull; ' + i.text + '</div>'; });
+      h += '<div style="margin-top:4px">You can still save. Add the details under Customers so it is right next time.</div>'; box.html(h).show();
+   }).trigger('change');
    function recalc(){
       var sub=0,gst=0;
       $('#lines tr.ln').each(function(){
