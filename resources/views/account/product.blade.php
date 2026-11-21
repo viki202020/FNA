@@ -5,9 +5,27 @@
    @include('layout.sidebar')
 @endsection
 @section('contentbody')
+<h1 class="mb-1">Products</h1>
+<div class="fna-tablebox mb-2">
+   <table class="table">
+      <thead><tr><th>Name</th><th>Type</th><th>HSN / SAC</th><th style="text-align:right">Price</th><th style="text-align:right">GST %</th><th>Account</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      @forelse($products as $pr)
+         <tr><td class="fw-bold">{{ $pr->name }}<div class="text-muted" style="font-size:12px;font-weight:400">{{ $pr->description }}</div></td><td>{{ $pr->type }}</td><td>{{ $pr->hsn_code }}</td>
+            <td style="text-align:right">{{ is_numeric($pr->price) ? number_format($pr->price,2) : $pr->price }}</td><td style="text-align:right">{{ $pr->tax_rate+0 }}</td><td>{{ $pr->head_name }}</td>
+            <td><span class="fna-chip {{ $pr->status ? 'active' : 'off' }}">{{ $pr->status ? 'Active' : 'Inactive' }}</span></td>
+            <td><a href="#" class="fw-bold edit-product" style="text-decoration:none" data-id="{{ $pr->id }}" data-type="{{ $pr->type }}" data-name="{{ $pr->name }}" data-description="{{ $pr->description }}"
+                  data-hsn="{{ $pr->hsn_code }}" data-unit="{{ $pr->unit }}" data-price="{{ $pr->price }}" data-taxpref="{{ $pr->tax_preference }}" data-taxrate="{{ $pr->tax_rate }}" data-head="{{ $pr->head }}" data-status="{{ $pr->status }}">Edit</a></td></tr>
+      @empty
+         <tr><td colspan="8" class="text-muted">No products yet.</td></tr>
+      @endforelse
+      </tbody>
+   </table>
+</div>
+<div class="fna-section-title">New product</div>
 <div class="row">
    <div class="col-12 col-xl-12">
-      <div class="card card-body border-0 shadow mb-4 mt-4">
+      <div class="card card-body border-0 shadow mb-4 mt-2">
          <h2 class="h5 mb-2">Product</h2>   <button class="btn btn-danger" data-msg="text" data-type="text" id="notifyTopRight" style="display: none;">Top right danger</button>                            
          <form action="" method="post" id="product_form_data" name="product_form_data">
             @csrf
@@ -145,6 +163,11 @@
 @endpush
 @push('script-js')
 <script type="text/javascript">
+$(document).on('click','.edit-product',function(e){ e.preventDefault(); var a=$(this);
+   $('#head_id').val(a.data('id')); $('input[name=type][value="'+a.data('type')+'"]').prop('checked',true).trigger('change');
+   $('#name').val(a.data('name')); $('#description').val(a.data('description')); $('#hsn_code').val(a.data('hsn')); $('#unit').val(a.data('unit')); $('#price').val(a.data('price'));
+   $('#tax_preference').val(a.data('taxpref')); $('#tax_rate').val(a.data('taxrate')); $('#head').val(a.data('head')); $('#status').val(a.data('status'));
+   $('html,body').animate({scrollTop: $('#product_form_data').offset().top-60}, 200); });
    $(function () {      
       var table = $('.yajra-datatable').DataTable({
           processing: true,

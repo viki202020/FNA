@@ -1105,7 +1105,10 @@ class MerchantController extends Controller{
    public function manageProduct(Request $request){
       $unit = Unit::where('status',1)->orderBy('name')->get();
       $head = Head::where('status',1)->where('status',1)->orderBy('name')->get();
-      return view('account.product',["units"=>$unit,"heads"=>$head]);
+      $products = DB::table('products as p')->leftJoin('units as u','u.id','=','p.unit')->leftJoin('head as h','h.id','=','p.head')
+                     ->where('p.merchant_id',Session::get('merchant_id'))->orderByDesc('p.status')->orderBy('p.name')
+                     ->get(['p.*','u.name as unit_name','h.name as head_name']);
+      return view('account.product',["units"=>$unit,"heads"=>$head,"products"=>$products]);
    }
    public function addProduct(Request $request){
       $input =  $request->all();      
