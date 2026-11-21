@@ -64,7 +64,7 @@ class MerchantController extends Controller{
          'sales'=>round($sum([9],true),2), 'purchases'=>round($sum([5,6]),2),
          'uncategorised'=>$uncategorised, 'drafts'=>$drafts, 'recent'=>$recent,
          'balanced'=>abs($totals->d - $totals->c) < 0.005,
-         'receivables'=>\App\Support\Outstanding::summary('sales'), 'payables'=>\App\Support\Outstanding::summary('purchase'),
+         'tds'=>\App\Support\TdsDue::next(), 'receivables'=>\App\Support\Outstanding::summary('sales'), 'payables'=>\App\Support\Outstanding::summary('purchase'),
       ]);
    }
    public function entity(Request $request){

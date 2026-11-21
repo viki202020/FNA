@@ -21,6 +21,13 @@
    <div class="fna-tile dark"><div class="k">Uploads for review</div><div class="v">{{ $uncategorised }} <span style="font-size:10px;font-weight:500">Uncategorised entries</span></div></div>
    <div class="fna-tile grey"><div class="k">Draft vouchers</div><div class="v">{{ $drafts }}</div><div class="s">Not yet posted</div></div>
 </div>
+@if($tds)
+<a href="{{ url('merchant/data-analytics?tab=tds') }}" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px;padding:9px 14px;border-radius:8px;border:1px solid {{ $tds['overdue'] ? 'var(--fna-dark)' : 'var(--fna-field)' }};background:{{ $tds['overdue'] ? 'var(--fna-band)' : 'var(--fna-tint)' }}">
+   <strong style="color:var(--fna-green)">TDS {{ $tds['overdue'] ? 'overdue since' : 'due by' }} {{ date('j F', strtotime($tds['due_date'])) }}:</strong>
+   {{ number_format($tds['outstanding'],2) }} from {{ $tds['count'] }} deduction{{ $tds['count']==1 ? '' : 's' }} in {{ $tds['label'] }}
+   @if(!$tds['overdue'])<span class="text-muted">({{ $tds['days']==0 ? 'today' : $tds['days'].' day'.($tds['days']==1?'':'s').' to go' }})</span>@else<span class="text-muted">({{ abs($tds['days']) }} day{{ abs($tds['days'])==1?'':'s' }} late)</span>@endif
+   <span style="float:right;font-weight:700;color:var(--fna-green)">TDS report &rsaquo;</span></a>
+@endif
 <div class="fna-tiles">
    <a class="fna-tile" href="{{ url('merchant/data-analytics?tab=receivables') }}" style="text-decoration:none;display:block"><div class="k">Receivables outstanding</div><div class="v">{{ $money($receivables['total']) }}</div><div class="s">{{ $money($receivables['overdue']) }} overdue &middot; {{ $receivables['parties'] }} {{ $receivables['parties']==1 ? 'customer' : 'customers' }}</div></a>
    <a class="fna-tile deep" href="{{ url('merchant/data-analytics?tab=payables') }}" style="text-decoration:none;display:block"><div class="k">Payables outstanding</div><div class="v">{{ $money($payables['total']) }}</div><div class="s">{{ $money($payables['overdue']) }} overdue &middot; {{ $payables['parties'] }} {{ $payables['parties']==1 ? 'supplier' : 'suppliers' }}</div></a>

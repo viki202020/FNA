@@ -12,7 +12,7 @@
    $tiesBad = collect($r['ties'])->filter(fn($x) => abs($x['diff']) > 0.5)->count();
    $ok = abs($t['difference']) < 0.5 && abs($sm['difference']) < 0.5;
    }
-   $tabs = ['recon'=>'Balance sheet reconciliation','receivables'=>'Receivables','payables'=>'Payables','ratios'=>'Ratio analysis'];
+   $tabs = ['recon'=>'Balance sheet reconciliation','receivables'=>'Receivables','payables'=>'Payables','ratios'=>'Ratio analysis','tds'=>'TDS'];
 @endphp
 <style>.ana td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.ana .tot td{font-weight:700;border-top:2px solid var(--fna-green)}</style>
 <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -43,6 +43,25 @@
    @if(count($out['parties']))<tr class="tot"><td>Total</td>@foreach(\App\Support\Outstanding::BUCKETS as $bk)<td class="n">{{ number_format($out['buckets'][$bk],2) }}</td>@endforeach<td class="n">{{ number_format($out['total'],2) }}</td></tr>@endif
    </tbody></table></div>
 <div class="fna-foot-note">Built from the {{ $isRec ? 'sales invoices' : 'purchase bills' }} raised in FNA and not yet fully settled. Balances brought forward without invoices are not listed here.</div>
+@elseif($tab==='tds')
+<p class="text-muted" style="max-width:900px">Tax you have deducted from payments and still owe the tax department, month by month. It is due on the 7th of the next month (30 April for March). Deposits are applied to the oldest month first. A deposit shows here once the bank line paying the government is categorised to the TDS Payable account.</p>
+<div class="fna-tablebox ana" style="max-width:1000px"><table class="table">
+   <thead><tr><th>Month</th><th style="text-align:right">Deductions</th><th style="text-align:right">Deducted</th><th style="text-align:right">Deposited</th><th style="text-align:right">Still to deposit</th><th>Due date</th><th>Status</th></tr></thead><tbody>
+   @forelse($tdsMonths as $m)
+      @php $days = (int) floor((strtotime($m['due_date']) - strtotime(date('Y-m-d'))) / 86400); @endphp
+      <tr><td class="fw-bold">{{ $m['label'] }}</td><td class="n">{{ $m['count'] }}</td><td class="n">{{ number_format($m['deducted'],2) }}</td><td class="n">{{ number_format($m['deposited'],2) }}</td><td class="n fw-bold">{{ number_format($m['outstanding'],2) }}</td><td>{{ date('d/m/Y', strtotime($m['due_date'])) }}</td>
+         <td>@if($m['outstanding'] <= 0.004)<span class="fna-chip posted">Deposited</span>@elseif($days < 0)<span class="fna-chip draft">Overdue {{ abs($days) }} days</span>@else<span class="fna-chip waiting">Due in {{ $days }} days</span>@endif</td></tr>
+   @empty
+      <tr><td colspan="7" class="text-muted">No TDS has been deducted yet.</td></tr>
+   @endforelse
+   </tbody></table></div>
+@foreach($tdsEntries as $ym=>$entries)
+   <div class="fna-section-title">Deductions in {{ date('F Y', strtotime($ym.'-01')) }} still to deposit</div>
+   <div class="fna-tablebox ana" style="max-width:1000px"><table class="table"><thead><tr><th>Date</th><th>Voucher</th><th>Narration</th><th style="text-align:right">TDS</th></tr></thead><tbody>
+      @foreach($entries as $e)<tr><td>{{ date('d/m/Y', strtotime($e->st_date)) }}</td><td><a href="{{ url('merchant/voucher/'.$e->voucher_no) }}" class="fw-bold" style="text-decoration:none">{{ $e->voucher_no }}</a></td><td>{{ $e->narration }}</td><td class="n">{{ number_format($e->credit,2) }}</td></tr>@endforeach
+   </tbody></table></div>
+@endforeach
+<div class="fna-foot-note">Paying the tax department: categorise the bank payment to the TDS Payable account, and the deposit appears here. FNA does not prepare the TDS return (Form 26Q) yet.</div>
 @elseif($tab==='ratios')
 <p class="text-muted" style="max-width:900px">The business's financial health, this year against last year. Ratios come from the Schedule III figures and use only categorised entries.</p>
 @php $fmtR = function($v,$u){ if($v===null){ return '-'; } return number_format($v, $u==='days' ? 0 : ($u==='%' ? 1 : 2)).($u==='x' ? '' : ($u==='%' ? '%' : ' days')); }; @endphp

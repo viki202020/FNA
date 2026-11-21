@@ -15,11 +15,13 @@ class AnalyticsController extends Controller
     {
         $years = DB::table('statement')->where('merchant_id', Session::get('merchant_id'))->whereNotNull('fyear')->distinct()->pluck('fyear')->all();
         $year = $request->input('year') ?: FinancialYears::current();
-        $tab = in_array($request->input('tab'), ['receivables', 'payables', 'ratios']) ? $request->input('tab') : 'recon';
+        $tab = in_array($request->input('tab'), ['receivables', 'payables', 'ratios', 'tds']) ? $request->input('tab') : 'recon';
         $asAt = $request->input('as_at') ?: date('Y-m-d');
         $r = $tab === 'recon' ? BalanceSheetReconciliation::run($year) : null;
         $out = in_array($tab, ['receivables', 'payables']) ? \App\Support\Outstanding::report($tab === 'receivables' ? 'sales' : 'purchase', $asAt) : null;
+        $tdsMonths = $tab === 'tds' ? \App\Support\TdsDue::months() : null;
+        $tdsEntries = $tab === 'tds' ? collect($tdsMonths)->filter(fn($m) => $m['outstanding'] > 0.004)->mapWithKeys(fn($m) => [$m['ym'] => \App\Support\TdsDue::entries($m['ym'])]) : null;
         $ratios = $tab === 'ratios' ? \App\Support\Ratios::compute($year) : null;
-        return view('analytics.index', ['tab' => $tab, 'out' => $out, 'ratios' => $ratios, 'as_at' => $asAt, 'r' => $r, 'year' => $year, 'year_options' => FinancialYears::options($years, $year, true), 'entity' => FinancialYears::entity()]);
+        return view('analytics.index', ['tdsMonths' => $tdsMonths, 'tdsEntries' => $tdsEntries, 'tab' => $tab, 'out' => $out, 'ratios' => $ratios, 'as_at' => $asAt, 'r' => $r, 'year' => $year, 'year_options' => FinancialYears::options($years, $year, true), 'entity' => FinancialYears::entity()]);
     }
 }
