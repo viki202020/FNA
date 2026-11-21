@@ -12,6 +12,7 @@
       ['Balance sheet', '/merchant/balance-sheet', ['merchant/balance-sheet*']],
       ['Profit and loss', '/merchant/profit-loss', ['merchant/profit-loss*']],
       ['Schedule III', '/merchant/financial-statements', ['merchant/financial-statements*']],
+      ['Data analytics', '/merchant/data-analytics', ['merchant/data-analytics*']],
       ['head', 'Upload'],
       ['Bank txns file', '/merchant/upload-csv', ['merchant/upload-csv*']],
       ['Opening balances', '/merchant/opening-balance', ['merchant/opening-balance*']],

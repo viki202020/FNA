@@ -208,6 +208,17 @@ class Schedule3
                 'bs' => $bs, 'pl' => $pl, 'notes' => $noteDetail, 'checks' => $checks];
     }
 
+    /** Closing figures per Schedule III line (unrounded, natural sign) for one year, with the year's profit: used by the reconciliation. */
+    public static function rawFigures($fyear)
+    {
+        $f = self::figures($fyear, self::mapping());
+        $f['lines']['reserves'] = round(($f['lines']['reserves'] ?? 0) + $f['profit'], 2);
+        return $f;
+    }
+
+    /** Net balance (debit minus credit) of every head for a year, opening entries included. */
+    public static function headBalances($fyear) { return self::balances($fyear); }
+
     /** Ageing of open invoices (receivables) or bills (payables) as at a date, in the Schedule III bands. */
     public static function ageing($kind, $asAt)
     {
