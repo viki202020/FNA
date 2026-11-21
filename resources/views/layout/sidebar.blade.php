@@ -11,6 +11,7 @@
       ['Trial balance', '/merchant/trial-balance', ['merchant/trial-balance*']],
       ['Balance sheet', '/merchant/balance-sheet', ['merchant/balance-sheet*']],
       ['Profit and loss', '/merchant/profit-loss', ['merchant/profit-loss*']],
+      ['Schedule III', '/merchant/financial-statements', ['merchant/financial-statements*']],
       ['head', 'Upload'],
       ['Bank txns file', '/merchant/upload-csv', ['merchant/upload-csv*']],
       ['Opening balances', '/merchant/opening-balance', ['merchant/opening-balance*']],

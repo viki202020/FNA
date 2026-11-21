@@ -1,0 +1,677 @@
+{
+ "rounding_default": "thousands",
+ "rows": [
+  {
+   "head_id": 2,
+   "name": "Cash and  Cash Equivalents",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Cash and cash equivalents"
+  },
+  {
+   "head_id": 3,
+   "name": "Salary",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Employee benefit expense"
+  },
+  {
+   "head_id": 4,
+   "name": "Legal Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 5,
+   "name": "Printing & Stationery",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 6,
+   "name": "Repairs and Maintenance",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 7,
+   "name": "Advertising",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 8,
+   "name": "Automobile Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 9,
+   "name": "Bank Service Charges",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Finance costs"
+  },
+  {
+   "head_id": 10,
+   "name": "Consulting & Accounting",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 11,
+   "name": "Audit Fee Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses - Payment to auditors"
+  },
+  {
+   "head_id": 12,
+   "name": "Entertainment",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 13,
+   "name": "General Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 14,
+   "name": "TDR and SMS Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 15,
+   "name": "Interest Paid",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Finance costs"
+  },
+  {
+   "head_id": 17,
+   "name": "Office Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 18,
+   "name": "Sales Return and Allowances",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Revenue from operations (less returns)"
+  },
+  {
+   "head_id": 19,
+   "name": "Travel Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 20,
+   "name": "Preliminary Expenses Written Off during year",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses - Preliminary expenses"
+  },
+  {
+   "head_id": 21,
+   "name": "Professional Charges",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 24,
+   "name": "Bank-AU SFB-5398",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Cash and cash equivalents"
+  },
+  {
+   "head_id": 25,
+   "name": "Conveyance Expense",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 26,
+   "name": "Advance from Director",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Short-term borrowings"
+  },
+  {
+   "head_id": 27,
+   "name": "Miscellaneous Expense",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 28,
+   "name": "GST (Expense)",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets - GST input credit"
+  },
+  {
+   "head_id": 29,
+   "name": "Professional Charges",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 30,
+   "name": "Postage & Courier",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 31,
+   "name": "Business Development",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 34,
+   "name": "Staff Welfare",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Employee benefit expense"
+  },
+  {
+   "head_id": 35,
+   "name": "Wages and Salaries",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Employee benefit expense"
+  },
+  {
+   "head_id": 36,
+   "name": "Telephone & Internet",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 37,
+   "name": "Accounts Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Trade payables"
+  },
+  {
+   "head_id": 38,
+   "name": "Short Term Loans and Advances",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Short-term loans and advances"
+  },
+  {
+   "head_id": 39,
+   "name": "Inventories",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Inventories"
+  },
+  {
+   "head_id": 40,
+   "name": "Accruals",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 41,
+   "name": "Expenses Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 42,
+   "name": "Employee Deductions payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 43,
+   "name": "Staff Tax Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 44,
+   "name": "Income Tax Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Short-term provisions - Income tax payable"
+  },
+  {
+   "head_id": 45,
+   "name": "Audit Fee Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Audit fee payable"
+  },
+  {
+   "head_id": 46,
+   "name": "Revenue Received in Advance",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 48,
+   "name": "Loan -vikas kukreja",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Short-term borrowings"
+  },
+  {
+   "head_id": 49,
+   "name": "TDS Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 50,
+   "name": "Suspense",
+   "statement": "CLEAR",
+   "section": "",
+   "line": ""
+  },
+  {
+   "head_id": 51,
+   "name": "Unpaid Expense Claims",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 52,
+   "name": "Rent Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 53,
+   "name": "Interest Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 54,
+   "name": "Fee Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 55,
+   "name": "Salary Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 56,
+   "name": "Trade Receivables",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Trade receivables"
+  },
+  {
+   "head_id": 59,
+   "name": "Property Plant and Equipments",
+   "statement": "Balance Sheet",
+   "section": "Non-current assets",
+   "line": "Property, plant and equipment - Tangible"
+  },
+  {
+   "head_id": 61,
+   "name": "Accumulated Depreciation on Assets",
+   "statement": "Balance Sheet",
+   "section": "Non-current assets",
+   "line": "Property, plant and equipment - less accumulated depreciation"
+  },
+  {
+   "head_id": 62,
+   "name": "Long Term Loans and Advances",
+   "statement": "Balance Sheet",
+   "section": "Non-current assets",
+   "line": "Long-term loans and advances"
+  },
+  {
+   "head_id": 64,
+   "name": "Income Tax Expense",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Tax expense"
+  },
+  {
+   "head_id": 65,
+   "name": "Historical Adjustment",
+   "statement": "CLEAR",
+   "section": "",
+   "line": ""
+  },
+  {
+   "head_id": 66,
+   "name": "Interest Received",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Other income"
+  },
+  {
+   "head_id": 67,
+   "name": "Sales Revenue",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Revenue from operations"
+  },
+  {
+   "head_id": 68,
+   "name": "Interest Income",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Other income"
+  },
+  {
+   "head_id": 69,
+   "name": "Other Income",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Other income"
+  },
+  {
+   "head_id": 70,
+   "name": "Refund Received",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Other income"
+  },
+  {
+   "head_id": 71,
+   "name": "Sales",
+   "statement": "Profit & Loss",
+   "section": "Income",
+   "line": "Revenue from operations"
+  },
+  {
+   "head_id": 72,
+   "name": "Wages Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities"
+  },
+  {
+   "head_id": 73,
+   "name": "Long Term Borrowings",
+   "statement": "Balance Sheet",
+   "section": "Non-current liabilities",
+   "line": "Long-term borrowings"
+  },
+  {
+   "head_id": 74,
+   "name": "Sales Tax",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 75,
+   "name": "Imprest With Director",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Short-term loans and advances"
+  },
+  {
+   "head_id": 77,
+   "name": "Reserves and Surplus",
+   "statement": "Balance Sheet",
+   "section": "Shareholders' funds",
+   "line": "Reserves and surplus"
+  },
+  {
+   "head_id": 78,
+   "name": "Retained Earnings",
+   "statement": "Balance Sheet",
+   "section": "Shareholders' funds",
+   "line": "Reserves and surplus"
+  },
+  {
+   "head_id": 79,
+   "name": "Account Payable-TPlay",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Trade payables"
+  },
+  {
+   "head_id": 80,
+   "name": "CGST Output tax Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 81,
+   "name": "SGST Output tax Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 82,
+   "name": "IGST Output tax  Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 83,
+   "name": "CGST Paid",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets - GST input credit"
+  },
+  {
+   "head_id": 84,
+   "name": "SGST Paid",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets - GST input credit"
+  },
+  {
+   "head_id": 85,
+   "name": "IGST Paid",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets - GST input credit"
+  },
+  {
+   "head_id": 86,
+   "name": "CGST Input Tax",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  },
+  {
+   "head_id": 87,
+   "name": "SGST Input Tax",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  },
+  {
+   "head_id": 88,
+   "name": "SH Capital-VIkas Kukreja",
+   "statement": "Balance Sheet",
+   "section": "Shareholders' funds",
+   "line": "Share capital"
+  },
+  {
+   "head_id": 89,
+   "name": "SH Capital-Pallavi Suhag",
+   "statement": "Balance Sheet",
+   "section": "Shareholders' funds",
+   "line": "Share capital"
+  },
+  {
+   "head_id": 90,
+   "name": "Loan -Pallavi Suhag",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Short-term borrowings"
+  },
+  {
+   "head_id": 91,
+   "name": "Bank- RBL account 400027092006",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Cash and cash equivalents"
+  },
+  {
+   "head_id": 92,
+   "name": "TDS and taxes Paid",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  },
+  {
+   "head_id": 93,
+   "name": "Share Premium",
+   "statement": "Balance Sheet",
+   "section": "Shareholders' funds",
+   "line": "Reserves and surplus"
+  },
+  {
+   "head_id": 94,
+   "name": "Deferred Tax Liabilities (Net)",
+   "statement": "Balance Sheet",
+   "section": "Non-current liabilities",
+   "line": "Deferred tax liabilities (net)"
+  },
+  {
+   "head_id": 95,
+   "name": "Other Long Term Liabilities",
+   "statement": "Balance Sheet",
+   "section": "Non-current liabilities",
+   "line": "Other long-term liabilities"
+  },
+  {
+   "head_id": 96,
+   "name": "Long Term Provisions",
+   "statement": "Balance Sheet",
+   "section": "Non-current liabilities",
+   "line": "Long-term provisions"
+  },
+  {
+   "head_id": 97,
+   "name": "Non Current Investments",
+   "statement": "Balance Sheet",
+   "section": "Non-current assets",
+   "line": "Non-current investments"
+  },
+  {
+   "head_id": 98,
+   "name": "Other Non Current Assets",
+   "statement": "Balance Sheet",
+   "section": "Non-current assets",
+   "line": "Other non-current assets"
+  },
+  {
+   "head_id": 99,
+   "name": "Deferred Tax Assets (Net)",
+   "statement": "Balance Sheet",
+   "section": "Non-current assets",
+   "line": "Deferred tax assets (net)"
+  },
+  {
+   "head_id": 100,
+   "name": "Current Investments",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Current investments"
+  },
+  {
+   "head_id": 101,
+   "name": "Premiminary Exp to the extent not Written Off",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  },
+  {
+   "head_id": 102,
+   "name": "Director Remuneration",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Employee benefit expense"
+  },
+  {
+   "head_id": 103,
+   "name": "TDS Expenses",
+   "statement": "Profit & Loss",
+   "section": "Expenses",
+   "line": "Other expenses"
+  },
+  {
+   "head_id": 104,
+   "name": "IGST Input tax",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  },
+  {
+   "head_id": 105,
+   "name": "CGST Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 106,
+   "name": "SGST Payable",
+   "statement": "Balance Sheet",
+   "section": "Current liabilities",
+   "line": "Other current liabilities - Duties & taxes"
+  },
+  {
+   "head_id": 107,
+   "name": "TDS recoverable",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  },
+  {
+   "head_id": 108,
+   "name": "Interest Receivable",
+   "statement": "Balance Sheet",
+   "section": "Current assets",
+   "line": "Other current assets"
+  }
+ ]
+}

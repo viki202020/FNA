@@ -8,6 +8,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\OpeningBalanceController;
+use App\Http\Controllers\Schedule3Controller;
 use App\Http\Controllers\PaymentReversalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VoucherController;
@@ -102,6 +103,8 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant/opening-balance/template', [OpeningBalanceController::class,'template']);
    Route::post('/merchant/opening-balance/preview', [OpeningBalanceController::class,'preview']);
    Route::post('/merchant/opening-balance/confirm', [OpeningBalanceController::class,'confirm']);
+   Route::get('/merchant/financial-statements', [Schedule3Controller::class,'index']);
+   Route::get('/merchant/financial-statements/export', [Schedule3Controller::class,'export']);
    Route::get('/merchant/posting-accounts', [SettingsController::class,'index']);
    Route::post('/merchant/posting-accounts', [SettingsController::class,'save']);
    Route::get('/merchant/manage-bill', [BillingController::class,'index']);
