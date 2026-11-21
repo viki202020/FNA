@@ -47,8 +47,19 @@
       <div class="nochq" style="display:none"><label>UTR / REFERENCE</label><input class="form-control" name="reference"></div>
       <button class="btn btn-outline-primary">Record</button>
    </form>
+   <div style="margin-top:6px;font-size:13px" id="paysum"></div>
+   @if($tdsSuggest)<div style="font-size:12px;color:var(--fna-muted)">{{ $doc->party_name }} deducts TDS at {{ $tdsSuggest['rate']+0 }}% of the amount before GST ({{ number_format($doc->subtotal,2) }}) = {{ number_format($tdsSuggest['amount'],2) }}. <a href="#" id="usetds" style="font-weight:700;text-decoration:none">Use it</a></div>@endif
    <div class="fna-foot-note" style="margin-top:4px;padding-top:0" id="payhelp"></div>
    <script>
+   (function(){var bal={{ round($doc->total-$doc->settled,2) }};
+     function num(v){v=parseFloat(String(v).replace(/,/g,''));return isNaN(v)?0:v;}
+     function f2(n){return n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+     var form=document.getElementById('payform'),amt=form.querySelector('[name=amount]'),tds=form.querySelector('[name=tds]');
+     function sum(){var a=num(amt.value),t=num(tds.value);var left=Math.round((bal-a-t)*100)/100;
+       document.getElementById('paysum').innerHTML='This settles <b>'+f2(a+t)+'</b> of the balance ('+f2(a)+' {{ $S ? 'received' : 'paid' }} + '+f2(t)+' TDS)'+(left>0.004?'. <b>'+f2(left)+'</b> stays due.':(left<-0.004?'. <b style="color:#013602">More than the balance.</b>':'. Nothing stays due.'));}
+     amt.addEventListener('input',sum);tds.addEventListener('input',sum);sum();
+     var u=document.getElementById('usetds');if(u){u.onclick=function(e){e.preventDefault();tds.value='{{ $tdsSuggest ? number_format($tdsSuggest['amount'],2,'.','') : '' }}';amt.value=(Math.round((bal-num(tds.value))*100)/100).toFixed(2);sum();};}
+   })();
    (function(){var m=document.getElementById('pmode');function f(){var c=m.value==='Cheque';
      document.querySelectorAll('#payform .chq').forEach(function(e){e.style.display=c?'':'none';});
      document.querySelectorAll('#payform .nochq').forEach(function(e){e.style.display=c?'none':'';});

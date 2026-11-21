@@ -120,7 +120,9 @@ class BillingController extends Controller
         $lineSettlements = DB::table('billing_settlements as s')->join('statement as st', 'st.id', '=', 's.statement_id')->where('s.doc_id', $id)
             ->where('st.voucher_no', 'not like', 'PYV-%')->where('st.voucher_no', 'not like', 'RCV-%')->get(['s.*', 'st.st_date', 'st.remark', 'st.voucher_no']);
         $banks = DB::table('head')->where('account_type_id', 3)->where('status', 1)->orderBy('name')->get(['id', 'name']);
-        return view('billing.show', ['notes' => $notes, 'lineSettlements' => $lineSettlements, 'me' => Session::get('id'), 'banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
+        $party = DB::table('customer')->where('id', $doc->party_id)->first();
+        $tdsSuggest = ($party && (int) $party->tds_status === 1 && is_numeric($party->tds_rate) && (float) $party->tds_rate > 0) ? ['rate' => (float) $party->tds_rate, 'amount' => round($doc->subtotal * (float) $party->tds_rate / 100, 2)] : null;
+        return view('billing.show', ['tdsSuggest' => $tdsSuggest, 'notes' => $notes, 'lineSettlements' => $lineSettlements, 'me' => Session::get('id'), 'banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
     }
 
     public function post(Request $request, $id)
