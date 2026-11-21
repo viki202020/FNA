@@ -127,7 +127,21 @@ class BillingController extends Controller
         $party = DB::table('customer')->where('id', $doc->party_id)->first();
         $tdsSuggest = ($party && (int) $party->tds_status === 1 && is_numeric($party->tds_rate) && (float) $party->tds_rate > 0) ? ['rate' => (float) $party->tds_rate, 'amount' => round($doc->subtotal * (float) $party->tds_rate / 100, 2)] : null;
         $partyIssues = \App\Support\PartyChecks::issues($party, $doc->kind);
-        return view('billing.show', ['partyIssues' => $partyIssues, 'tdsSuggest' => $tdsSuggest, 'notes' => $notes, 'lineSettlements' => $lineSettlements, 'me' => Session::get('id'), 'banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
+        $headsAll = DB::table('head')->where('status', 1)->orderBy('name')->get(['id', 'name']);
+        return view('billing.show', ['headsAll' => $headsAll, 'partyIssues' => $partyIssues, 'tdsSuggest' => $tdsSuggest, 'notes' => $notes, 'lineSettlements' => $lineSettlements, 'me' => Session::get('id'), 'banks' => $banks, 'doc' => $doc, 'lines' => $lines, 'settlements' => $settlements, 'heads' => $heads]);
+    }
+
+    /** Sets the expense account on each line of a draft purchase bill (for example one created from GSTR-2B). */
+    public function accounts(Request $request, $id)
+    {
+        $doc = DB::table('billing_docs')->where('merchant_id', $this->merchant())->where('id', $id)->where('status', 'draft')->first();
+        abort_unless($doc, 404);
+        foreach ((array) $request->input('head_id') as $lineId => $headId) {
+            if ($headId && DB::table('head')->where('id', $headId)->where('status', 1)->exists()) {
+                DB::table('billing_doc_lines')->where('id', $lineId)->where('doc_id', $id)->update(['head_id' => $headId, 'updated_at' => now()]);
+            }
+        }
+        return back()->with('success_msg', 'Accounts saved.');
     }
 
     public function post(Request $request, $id)

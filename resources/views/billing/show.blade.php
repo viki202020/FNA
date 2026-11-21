@@ -31,6 +31,14 @@
       </tbody>
    </table>
 </div>
+@if($doc->status==='draft' && !$S)
+   <div class="fna-section-title">Expense account for each line</div>
+   <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/accounts') }}" class="fna-tablebox" style="max-width:1000px;padding:10px">@csrf
+      @foreach($lines as $l)<div class="d-flex gap-2 align-items-center mb-2"><div style="flex:1">{{ $l->description }} <span class="text-muted">({{ number_format($l->amount,2) }})</span></div>
+         <select class="form-select" name="head_id[{{ $l->id }}]" style="max-width:320px"><option value="">Select account</option>@foreach($headsAll as $h)<option value="{{ $h->id }}" @if($l->head_id==$h->id) selected @endif>{{ $h->name }}</option>@endforeach</select></div>@endforeach
+      <button class="btn btn-outline-primary btn-sm">Save accounts</button>
+   </form>
+@endif
 @if($doc->status==='draft')
    <form method="post" action="{{ url('merchant/billing/'.$doc->id.'/post') }}" class="mt-3">@csrf<button class="btn btn-primary">Post to the books</button></form>
 @else

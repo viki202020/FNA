@@ -76,6 +76,7 @@ class BillingPosting
                 throw new \RuntimeException('Add at least one line.');
             }
             $sales = $doc->kind === 'sales';
+            if (!$sales && $lines->contains(fn($l) => empty($l->head_id))) { throw new \RuntimeException('Choose an expense account for every line before posting.'); }
             $number = self::nextNumber($doc->kind, $fyear, $doc->merchant_id);
             $voucherId = DB::table('vouchers')->insertGetId([
                 'merchant_id' => $doc->merchant_id, 'voucher_no' => $number, 'series' => $sales ? 'SIV' : 'PBV',
