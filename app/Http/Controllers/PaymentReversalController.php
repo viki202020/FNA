@@ -72,6 +72,7 @@ class PaymentReversalController extends Controller
     {
         $e = FinancialYears::entity();
         $today = date('Y-m-d');
+        if (FinancialYears::acceptsDate($today)) { return $today; }
         if ($e && $e->financial_year_end && $today > $e->financial_year_end) { return $e->financial_year_end; }
         if ($e && $e->financial_year_start && $today < $e->financial_year_start) { return $e->financial_year_start; }
         return $today;
@@ -90,7 +91,7 @@ class PaymentReversalController extends Controller
         if (!FinancialYears::dateInCurrentYear($date)) { throw new \RuntimeException('The reversal date is outside the open financial year.'); }
         $orig = DB::table('vouchers')->where('id', $note->voucher_id)->first();
         if (!$orig || !FinancialYears::isOpen($orig->fyear)) { throw new \RuntimeException('The year of this cheque is closed.'); }
-        $fyear = FinancialYears::current();
+        $fyear = FinancialYears::yearForDate($date);
         $number = VoucherNumber::sequence('RJV', 4)->next();
         $vid = DB::table('vouchers')->insertGetId([
             'merchant_id' => $this->merchant(), 'voucher_no' => $number, 'series' => 'RJV', 'fyear' => $fyear, 'voucher_date' => $date, 'status' => 'posted',
@@ -153,7 +154,7 @@ class PaymentReversalController extends Controller
                     if (!FinancialYears::dateInCurrentYear($date)) { throw new \RuntimeException('The void date is outside the open financial year.'); }
                     $orig = DB::table('vouchers')->where('id', $doc->voucher_id)->first();
                     if (!$orig || !FinancialYears::isOpen($orig->fyear)) { throw new \RuntimeException('The year of this document is closed.'); }
-                    $fyear = FinancialYears::current();
+                    $fyear = FinancialYears::yearForDate($date);
                     $number = VoucherNumber::sequence('RJV', 4)->next();
                     $vid = DB::table('vouchers')->insertGetId([
                         'merchant_id' => $this->merchant(), 'voucher_no' => $number, 'series' => 'RJV', 'fyear' => $fyear, 'voucher_date' => $date, 'status' => 'posted', 'version' => 1,

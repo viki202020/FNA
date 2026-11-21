@@ -67,8 +67,8 @@ class BillingPosting
             if (!$doc || $doc->status !== 'draft') {
                 throw new \RuntimeException('Only a draft can be posted.');
             }
-            $fyear = FinancialYears::current();
-            if (!FinancialYears::isOpen($fyear) || !FinancialYears::dateInCurrentYear($doc->doc_date)) {
+            $fyear = FinancialYears::yearForDate($doc->doc_date);
+            if (!FinancialYears::acceptsDate($doc->doc_date)) {
                 throw new \RuntimeException('The date is outside the open financial year.');
             }
             $lines = DB::table('billing_doc_lines')->where('doc_id', $doc->id)->get();

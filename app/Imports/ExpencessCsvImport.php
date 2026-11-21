@@ -50,10 +50,11 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
 
       // Only lines dated inside the current financial year are accepted.
       $line_date = $row[$this->data['date_col']] ?? '';
-      if(!empty($line_date) && (strtotime($line_date)===false || !FinancialYears::dateInCurrentYear($line_date))){
-         $this->rejected[] = ['date'=>(string)$line_date,'why'=>'outside the current financial year','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
+      if(!empty($line_date) && (strtotime($line_date)===false || !FinancialYears::acceptsDate($line_date))){
+         $this->rejected[] = ['date'=>(string)$line_date,'why'=>strtotime($line_date)===false ? 'no valid date' : 'belongs to '.FinancialYears::yearForDate($line_date).', which is closed or not open yet','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
          return null;
       }
+      if(!empty($line_date)){ $this->fyear = FinancialYears::yearForDate($line_date); }   // each line is filed under the year of its own date
       $amount_column = $this->data['amount_column'];
       $date_col = $this->data['date_col'];
       $description_col = $this->data['description_col'];

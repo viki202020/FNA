@@ -187,7 +187,7 @@ class MatchController extends Controller
         }
         try {
             DB::transaction(function () use ($doc, $base, $chq, $amount, $request, $id) {
-                $fyear = \App\Support\FinancialYears::current();
+                $fyear = \App\Support\FinancialYears::yearForDate($base['pay_date']);
                 if (!\App\Support\FinancialYears::dateInCurrentYear($base['pay_date'])) { throw new \RuntimeException('The cheque date is outside the open financial year.'); }
                 $in = $doc->kind === 'sales';
                 $series = $in ? 'RCV' : 'PYV';

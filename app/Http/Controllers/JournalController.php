@@ -83,7 +83,7 @@ class JournalController extends Controller
         $me = Session::get('id');
         try {
             $vid = DB::transaction(function () use ($request, $id, $post, $date, $rows, $me) {
-                $fyear = FinancialYears::current();
+                $fyear = FinancialYears::yearForDate($date);
                 if ($id) {
                     $v = DB::table('vouchers')->where('merchant_id', $this->merchant())->where('id', $id)->where('status', 'draft')->lockForUpdate()->first();
                     if (!$v) { throw new \RuntimeException('Only a draft can be changed.'); }

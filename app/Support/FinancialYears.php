@@ -54,7 +54,7 @@ class FinancialYears
 
     public static function openYears()
     {
-        $years = array_merge([self::current()], self::reopened());
+        $years = array_merge([self::current()], self::reopened(), [self::nextYearIfStarted()]);
         return array_values(array_unique(array_filter($years)));
     }
 
@@ -75,6 +75,12 @@ class FinancialYears
     /** Is this date inside the company's current financial year? */
     public static function dateInCurrentYear($date)
     {
+        return self::acceptsDate($date);
+    }
+
+    /** Is this date inside the company's current financial year only? (kept for the reports that need exactly that) */
+    public static function dateInEntityYear($date)
+    {
         $entity = self::entity();
         $time = strtotime((string) $date);
         if (!$entity || $time === false || !$entity->financial_year_start || !$entity->financial_year_end) {
@@ -90,7 +96,7 @@ class FinancialYears
      */
     public static function options(array $knownYears, $selected, $showClosed)
     {
-        $all = array_values(array_unique(array_filter(array_merge($knownYears, [self::current(), $selected]))));
+        $all = array_values(array_unique(array_filter(array_merge($knownYears, self::openYears(), [$selected]))));
         sort($all);
         return array_values(array_filter($all, function ($year) use ($selected, $showClosed) {
             return self::isOpen($year) || $showClosed || $year === $selected;
@@ -136,18 +142,39 @@ class FinancialYears
         return $blockers;
     }
 
-    /** The financial year a date falls in: the company's current year if it fits, otherwise April to March. */
+    /**
+     * The financial year a date falls in, by the company's own year start (31 March cut-off for an April to March year).
+     * Labelled like the company's year: 2023-2024.
+     */
     public static function yearForDate($date)
     {
         $t = strtotime((string) $date);
         if (!$t) { return null; }
         $e = self::entity();
-        if ($e && $e->financial_year_start && $e->financial_year_end && $t >= strtotime($e->financial_year_start) && $t <= strtotime($e->financial_year_end)) {
+        if ($e && $e->financial_year_start && $e->financial_year_end && $t >= strtotime($e->financial_year_start) && $t <= strtotime($e->financial_year_end . ' 23:59:59')) {
             return $e->financial_year;
         }
-        $y = (int) date('Y', $t); $m = (int) date('n', $t);
-        $start = $m >= 4 ? $y : $y - 1;
+        $m0 = $e && $e->financial_year_start ? (int) date('n', strtotime($e->financial_year_start)) : 4;
+        $d0 = $e && $e->financial_year_start ? (int) date('j', strtotime($e->financial_year_start)) : 1;
+        $y = (int) date('Y', $t);
+        $startThisYear = strtotime(sprintf('%04d-%02d-%02d', $y, $m0, $d0));
+        $start = $t >= $startThisYear ? $y : $y - 1;
         return $start . '-' . ($start + 1);
+    }
+
+    /** The year after the current one, once the current one has ended but has not been closed yet. */
+    public static function nextYearIfStarted()
+    {
+        $e = self::entity();
+        if (!$e || !$e->financial_year_end || strtotime(date('Y-m-d')) <= strtotime($e->financial_year_end)) { return null; }
+        return self::yearForDate(date('Y-m-d', strtotime($e->financial_year_end . ' +1 day')));
+    }
+
+    /** May a line or voucher dated $date be posted? Its year is worked out from the date, and that year must be open. */
+    public static function acceptsDate($date)
+    {
+        $year = self::yearForDate($date);
+        return $year !== null && self::isOpen($year);
     }
 
     /** Things worth knowing before closing, that do not stop it. */

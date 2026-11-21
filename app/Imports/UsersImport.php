@@ -107,8 +107,9 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
          $this->rejected[] = ['date'=>(string)$line_date,'why'=>'no valid date','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
          return null;
       }
-      if(!FinancialYears::dateInCurrentYear($line_date)){
-         $this->rejected[] = ['date'=>date('Y-m-d',strtotime($line_date)),'why'=>'outside the current financial year','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
+      // The year is worked out from the line's own date (31 March cut-off). A line whose year is closed is held back.
+      if(!FinancialYears::acceptsDate($line_date)){
+         $this->rejected[] = ['date'=>date('Y-m-d',strtotime($line_date)),'why'=>'belongs to '.FinancialYears::yearForDate($line_date).', which is closed or not open yet','remark'=>substr((string)($row[$this->data['description_col']] ?? ''),0,50)];
          return null;
       }
       $amount_column = $this->data['amount_column'];
@@ -438,7 +439,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
             }
          }
          $entity = Entity::where('status',1)->where('merchant_id',Session::get('merchant_id'))->orderBy('id','desc')->first();
-         $fyear = $entity->financial_year;
+         $fyear = FinancialYears::yearForDate($line_date);
          // The bank's own entry is created for EVERY line, exactly as the bank shows it
          // (money in = debit on the bank, money out = credit), whether or not a rule matched.
          // Categorising later only chooses the account for the other, reversed entry.
