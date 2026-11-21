@@ -66,7 +66,7 @@
      function f2(n){return n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
      var form=document.getElementById('payform'),amt=form.querySelector('[name=amount]'),tds=form.querySelector('[name=tds]');
      function sum(){var a=num(amt.value),t=num(tds.value);var left=Math.round((bal-a-t)*100)/100;
-       document.getElementById('paysum').innerHTML='This settles <b>'+f2(a+t)+'</b> of the balance ('+f2(a)+' {{ $S ? 'received' : 'paid' }} + '+f2(t)+' TDS)'+(left>0.004?'. <b>'+f2(left)+'</b> stays due.':(left<-0.004?'. <b style="color:#013602">More than the balance.</b>':'. Nothing stays due.'));}
+       document.getElementById('paysum').innerHTML='This settles <b>'+f2(a+t)+'</b> of the balance ('+f2(a)+' {{ $S ? 'received' : 'paid' }} + '+f2(t)+' TDS)'+(left>0.004?'. <b>'+f2(left)+'</b> stays due.':(left<-0.004?'. <b style="color:#013602">More than the balance.</b>':'. Nothing is now due.'));}
      amt.addEventListener('input',sum);tds.addEventListener('input',sum);sum();
      var u=document.getElementById('usetds');if(u){u.onclick=function(e){e.preventDefault();tds.value='{{ $tdsSuggest ? number_format($tdsSuggest['amount'],2,'.','') : '' }}';amt.value=(Math.round((bal-num(tds.value))*100)/100).toFixed(2);sum();};}
    })();
