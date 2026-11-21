@@ -21,6 +21,10 @@
    <div class="fna-tile dark"><div class="k">Uploads for review</div><div class="v">{{ $uncategorised }} <span style="font-size:10px;font-weight:500">Uncategorised entries</span></div></div>
    <div class="fna-tile grey"><div class="k">Draft vouchers</div><div class="v">{{ $drafts }}</div><div class="s">Not yet posted</div></div>
 </div>
+<div class="fna-tiles">
+   <a class="fna-tile" href="{{ url('merchant/data-analytics?tab=receivables') }}" style="text-decoration:none;display:block"><div class="k">Receivables outstanding</div><div class="v">{{ $money($receivables['total']) }}</div><div class="s">{{ $money($receivables['overdue']) }} overdue &middot; {{ $receivables['parties'] }} {{ $receivables['parties']==1 ? 'customer' : 'customers' }}</div></a>
+   <a class="fna-tile deep" href="{{ url('merchant/data-analytics?tab=payables') }}" style="text-decoration:none;display:block"><div class="k">Payables outstanding</div><div class="v">{{ $money($payables['total']) }}</div><div class="s">{{ $money($payables['overdue']) }} overdue &middot; {{ $payables['parties'] }} {{ $payables['parties']==1 ? 'supplier' : 'suppliers' }}</div></a>
+</div>
 <div class="fna-tablebox">
    <h2 style="margin:4px 0 8px 8px;font-size:14px">Recent vouchers</h2>
    <table class="table">

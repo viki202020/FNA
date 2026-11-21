@@ -6,18 +6,58 @@
 @endsection
 @section('contentbody')
 @php
+   if($tab==='recon'){
    $t = $r['trial']; $sm = $r['summary']; $ex = $r['extras']; $carry = $r['carry'];
    $m = fn($v) => number_format(abs($v), 2);
    $tiesBad = collect($r['ties'])->filter(fn($x) => abs($x['diff']) > 0.5)->count();
    $ok = abs($t['difference']) < 0.5 && abs($sm['difference']) < 0.5;
+   }
+   $tabs = ['recon'=>'Balance sheet reconciliation','receivables'=>'Receivables','payables'=>'Payables','ratios'=>'Ratio analysis'];
 @endphp
 <style>.ana td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.ana .tot td{font-weight:700;border-top:2px solid var(--fna-green)}</style>
 <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:6px">
    <h1 style="margin:0">Data analytics</h1>
-   <form method="get" style="margin:0"><label style="display:inline-flex;gap:6px;align-items:center;margin:0">Financial year
+   <form method="get" style="margin:0"><input type="hidden" name="tab" value="{{ $tab }}"><label style="display:inline-flex;gap:6px;align-items:center;margin:0">Financial year
       <select name="year" class="form-select" style="width:auto;font-weight:700;color:var(--fna-green)" onchange="this.form.submit()">@foreach($year_options as $y)<option value="{{ $y }}" @if($y==$year) selected @endif>{{ $y }}@if(!\App\Support\FinancialYears::isOpen($y)) (closed)@endif</option>@endforeach</select></label></form>
 </div>
-<div class="fna-radios mb-2"><label class="on">Balance sheet reconciliation</label></div>
+<div class="fna-radios mb-2">@foreach($tabs as $k=>$tt)<label class="{{ $k===$tab ? 'on' : '' }}"><a href="?tab={{ $k }}&year={{ $year }}" style="color:inherit;text-decoration:none">{{ $tt }}</a></label>@endforeach</div>
+@if($tab==='receivables' || $tab==='payables')
+@php $isRec = $tab==='receivables'; @endphp
+<p class="text-muted" style="max-width:900px">{{ $isRec ? 'Which customers owe you money, how much, by when, and how long overdue. Chase the ones in the right-hand columns first.' : 'What you owe, to whom, by when, and how long overdue. Pay in time to keep suppliers and cash flow in order.' }}</p>
+<div class="fna-tiles" style="max-width:1000px">
+   <div class="fna-tile"><div class="k">{{ $isRec ? 'Receivable' : 'Payable' }} in total</div><div class="v">{{ number_format($out['total'],2) }}</div><div class="s">{{ $out['count'] }} open {{ $isRec ? 'invoices' : 'bills' }}, {{ count($out['parties']) }} {{ count($out['parties'])==1 ? 'party' : 'parties' }}</div></div>
+   <div class="fna-tile dark"><div class="k">Overdue</div><div class="v">{{ number_format($out['overdue'],2) }}</div><div class="s">as at {{ date('d/m/Y',strtotime($as_at)) }}</div></div>
+   <div class="fna-tile grey"><div class="k">Not yet due</div><div class="v">{{ number_format($out['buckets']['Not yet due'],2) }}</div></div>
+</div>
+<div class="fna-tablebox ana" style="max-width:1100px"><table class="table">
+   <thead><tr><th>Party</th>@foreach(\App\Support\Outstanding::BUCKETS as $bk)<th style="text-align:right">{{ $bk }}</th>@endforeach<th style="text-align:right">Total</th></tr></thead><tbody>
+   @forelse($out['parties'] as $p)
+      <tr style="font-weight:700"><td>{{ $p['name'] }}</td>@foreach(\App\Support\Outstanding::BUCKETS as $bk)<td class="n">{{ $p['buckets'][$bk] ? number_format($p['buckets'][$bk],2) : '' }}</td>@endforeach<td class="n">{{ number_format($p['total'],2) }}</td></tr>
+      @foreach($p['docs'] as $d)
+         <tr class="ind"><td style="padding-left:28px;font-weight:400"><a href="{{ url('merchant/'.($isRec?'invoices':'bills').'/'.$d['id']) }}" style="font-weight:700;text-decoration:none">{{ $d['number'] }}</a> <span class="text-muted" style="font-size:12px">raised {{ date('d/m/Y',strtotime($d['date'])) }}, due {{ date('d/m/Y',strtotime($d['due'])) }}@if($d['overdue_days']), {{ $d['overdue_days'] }} days overdue @endif</span></td>
+            @foreach(\App\Support\Outstanding::BUCKETS as $bk)<td class="n" style="font-weight:400">{{ $d['bucket']===$bk ? number_format($d['balance'],2) : '' }}</td>@endforeach<td class="n" style="font-weight:400">{{ number_format($d['balance'],2) }}</td></tr>
+      @endforeach
+   @empty
+      <tr><td colspan="7" class="text-muted">Nothing outstanding.</td></tr>
+   @endforelse
+   @if(count($out['parties']))<tr class="tot"><td>Total</td>@foreach(\App\Support\Outstanding::BUCKETS as $bk)<td class="n">{{ number_format($out['buckets'][$bk],2) }}</td>@endforeach<td class="n">{{ number_format($out['total'],2) }}</td></tr>@endif
+   </tbody></table></div>
+<div class="fna-foot-note">Built from the {{ $isRec ? 'sales invoices' : 'purchase bills' }} raised in FNA and not yet fully settled. Balances brought forward without invoices are not listed here.</div>
+@elseif($tab==='ratios')
+<p class="text-muted" style="max-width:900px">The business's financial health, this year against last year. Ratios come from the Schedule III figures and use only categorised entries.</p>
+@php $fmtR = function($v,$u){ if($v===null){ return '-'; } return number_format($v, $u==='days' ? 0 : ($u==='%' ? 1 : 2)).($u==='x' ? '' : ($u==='%' ? '%' : ' days')); }; @endphp
+<div class="fna-tablebox ana" style="max-width:1000px"><table class="table">
+   <thead><tr><th>Ratio</th><th>How it is worked out</th><th style="text-align:right">{{ $ratios['year'] }}</th><th style="text-align:right">{{ $ratios['prev_year'] ?: 'Previous year' }}</th><th>Change</th></tr></thead><tbody>
+   @php $g=''; @endphp
+   @foreach($ratios['rows'] as $row)
+      @if($row['group']!==$g)@php $g=$row['group']; @endphp<tr class="grp"><td colspan="5" style="font-weight:700;color:var(--fna-green);background:var(--fna-tint)">{{ $g }}</td></tr>@endif
+      <tr><td class="fw-bold">{{ $row['name'] }}<div class="text-muted" style="font-size:12px;font-weight:400">{{ $row['means'] }}</div></td><td class="text-muted" style="font-size:12px">{{ $row['formula'] }}</td>
+         <td class="n fw-bold">{{ $fmtR($row['cur'],$row['unit']) }}</td><td class="n">{{ $fmtR($row['prev'],$row['unit']) }}</td>
+         <td>@if($row['cur']!==null && $row['prev']!==null){{ $row['cur']>$row['prev'] ? 'Up' : ($row['cur']<$row['prev'] ? 'Down' : 'Same') }}@endif</td></tr>
+   @endforeach
+   </tbody></table></div>
+<div class="fna-foot-note">Ratios are most useful as a trend over several years and against similar businesses. A dash means the ratio cannot be worked out (for example, no revenue or no liabilities). Comparison with other businesses needs an industry data source, which FNA does not have.</div>
+@else
 <p class="text-muted" style="max-width:900px">Verifies the balance sheet: every component's closing balance, assets against liabilities, and each component against its own records. A difference is shown with its amount so it can be traced and fixed. Only categorised entries are included.</p>
 
 <div class="alert {{ $ok ? 'alert-success' : 'alert-danger' }}" style="max-width:1000px">
@@ -65,4 +105,5 @@
    <div class="alert {{ count($ex['clear']) ? 'alert-danger' : 'alert-success' }}">{{ count($ex['clear']) }} ledger(s) marked for removal still have a balance.@foreach($ex['clear'] as $u)<div>&bull; {{ $u['name'] }}: {{ number_format($u['amount'],2) }}</div>@endforeach</div>
 </div>
 <div class="fna-foot-note">Because FNA posts every entry in double entry, the balance sheet should always reconcile. This page is the proof, and the place to look first if a figure ever looks wrong.</div>
+@endif
 @endsection
