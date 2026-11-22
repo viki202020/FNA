@@ -21,7 +21,7 @@
 </tbody></table></div>
 
 @elseif($tab==='held')
-<p class="text-muted" style="max-width:950px">These came from Inventorise but the supplier or customer is not in FNA. Match each to a party you already have, or create it from what Inventorise sent. Once confirmed, the same party is recognised automatically.</p>
+<p class="text-muted" style="max-width:950px">A supplier or customer that FNA does not know is created automatically. Only a message that could not be filed waits here, for example one with no party name. Match it to a party you already have, or create it.</p>
 @forelse($held as $r)
 <div class="fna-tablebox" style="max-width:1000px;padding:12px;margin-bottom:10px">
    <div><b>{{ $typeName[$r->type] ?? $r->type }} {{ $r->ref }}</b> from <b>{{ $r->p['party']['name'] ?? '?' }}</b> @if(!empty($r->p['party']['gstin'])) (GSTIN {{ $r->p['party']['gstin'] }}) @endif</div>
@@ -32,7 +32,7 @@
          <button class="btn btn-primary">Confirm</button></form>
       <form method="post" action="{{ url('merchant/inventorise/create-party') }}" style="margin:0">@csrf<input type="hidden" name="inbox_id" value="{{ $r->id }}"><button class="btn btn-outline-primary">Create as new</button></form>
    </div></div>
-@empty<div class="alert alert-secondary" style="max-width:900px">Nothing to confirm.</div>@endforelse
+@empty<div class="alert alert-secondary" style="max-width:900px">Nothing is waiting.</div>@endforelse
 
 @else
 <div class="fna-tablebox lk" style="max-width:1000px"><table class="table"><thead><tr><th>Last received</th><th>Type</th><th>Reference</th><th>Times sent</th><th>Result</th></tr></thead><tbody>

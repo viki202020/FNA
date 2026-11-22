@@ -37,7 +37,13 @@ class InventoriseLink
         return self::apply($id);
     }
 
-    /** Finds the FNA party for the message: a confirmed link, then GSTIN, then exact name. Null if none. */
+    /**
+     * Finds the FNA party for a message:
+     *   1. a match you confirmed before (Inventorise's own id for the party);
+     *   2. the same GSTIN (a different spelling of the name is fine);
+     *   3. no GSTIN in the message: the same name, ignoring capitals and extra spaces.
+     * Null when the name + GSTIN combination is not in FNA: the caller then creates the party.
+     */
     public static function findParty($merchant, $kind, array $party)
     {
         $type = $kind === 'purchase' ? 4 : 1;
@@ -48,15 +54,28 @@ class InventoriseLink
         }
         $gst = TaxId::clean($party['gstin'] ?? '');
         if ($gst !== '') {
-            $c = DB::table('customer')->where('merchant', $merchant)->where('type', $type)->whereRaw('UPPER(REPLACE(gst, " ", "")) = ?', [$gst])->first();
-            if ($c) { return $c; }
+            return DB::table('customer')->where('merchant', $merchant)->where('type', $type)->whereRaw('UPPER(REPLACE(gst, " ", "")) = ?', [$gst])->orderBy('id')->first();
         }
-        $name = mb_strtolower(trim((string) ($party['name'] ?? '')));
+        $name = mb_strtolower(trim(preg_replace('/\s+/', ' ', (string) ($party['name'] ?? ''))));
         if ($name !== '') {
-            $c = DB::table('customer')->where('merchant', $merchant)->where('type', $type)->whereRaw('LOWER(TRIM(display_name)) = ?', [$name])->first();
-            if ($c) { return $c; }
+            return DB::table('customer')->where('merchant', $merchant)->where('type', $type)->whereRaw("LOWER(TRIM(REPLACE(display_name, '  ', ' '))) = ?", [$name])->orderBy('id')->first();
         }
         return null;
+    }
+
+    /** Creates the supplier or customer from what Inventorise sent, and remembers which Inventorise party it is. */
+    public static function createParty($merchant, $kind, array $p)
+    {
+        $name = trim(preg_replace('/\s+/', ' ', (string) ($p['name'] ?? '')));
+        if ($name === '') { throw new \RuntimeException('The message has no party name, so a party cannot be created.'); }
+        $gst = TaxId::clean($p['gstin'] ?? '');
+        $state = trim((string) ($p['state'] ?? '')) ?: ($gst !== '' ? (Gstr2b::STATE_CODES[substr($gst, 0, 2)] ?? null) : null);
+        $id = DB::table('customer')->insertGetId(['type' => $kind === 'purchase' ? 4 : 1, 'first_name' => $name, 'display_name' => $name, 'gst' => $gst ?: null, 'gst_type' => $gst ? 'Registered' : 'Unregistered',
+            'email' => $p['email'] ?? null, 'phone' => mb_substr((string) ($p['phone'] ?? ''), 0, 20) ?: null, 'billing_state' => $state,
+            'pan' => strtoupper(substr((string) ($p['pan'] ?? ''), 0, 10)) ?: ($gst !== '' ? substr($gst, 2, 10) : null), 'merchant' => $merchant, 'status' => 1, 'created_at' => date('d-m-Y H:i:s'), 'created_by' => 0]);
+        $key = trim((string) ($p['key'] ?? ''));
+        if ($key !== '') { DB::table('party_links')->updateOrInsert(['merchant_id' => $merchant, 'ext_key' => $key], ['customer_id' => $id, 'confirmed_by' => 0, 'updated_at' => now(), 'created_at' => now()]); }
+        return DB::table('customer')->where('id', $id)->first();
     }
 
     public static function apply($inboxId)
@@ -65,14 +84,18 @@ class InventoriseLink
         $p = json_decode($row->payload, true);
         $m = $row->merchant_id; $kind = self::kind($row->type);
         try {
+            $made = null;
             $party = self::findParty($m, $kind, (array) ($p['party'] ?? []));
             if (!$party) {
-                DB::table('link_inbox')->where('id', $inboxId)->update(['status' => 'held', 'note' => 'The ' . ($kind === 'purchase' ? 'supplier' : 'customer') . ' "' . ($p['party']['name'] ?? '?') . '" is not in FNA. Confirm it.', 'updated_at' => now()]);
-                return DB::table('link_inbox')->where('id', $inboxId)->first();
+                try { $party = self::createParty($m, $kind, (array) ($p['party'] ?? [])); $made = 'New ' . ($kind === 'purchase' ? 'supplier' : 'customer') . ' "' . ($party->display_name) . '" was created in FNA from this message. Add its TDS details under Customers if needed.'; }
+                catch (\RuntimeException $e) {
+                    DB::table('link_inbox')->where('id', $inboxId)->update(['status' => 'held', 'note' => $e->getMessage(), 'updated_at' => now()]);
+                    return DB::table('link_inbox')->where('id', $inboxId)->first();
+                }
             }
-            DB::transaction(function () use ($row, $p, $party, $m, $kind) {
-                if (str_ends_with($row->type, '_order')) { $oid = self::saveOrder($m, $kind, $p, $party); $upd = ['order_id' => $oid, 'note' => null]; }
-                else { [$did, $note] = self::saveDoc($m, $kind, $p, $party); $upd = ['doc_id' => $did, 'note' => $note]; }
+            DB::transaction(function () use ($row, $p, $party, $m, $kind, $made) {
+                if (str_ends_with($row->type, '_order')) { $oid = self::saveOrder($m, $kind, $p, $party); $upd = ['order_id' => $oid, 'note' => $made]; }
+                else { [$did, $note] = self::saveDoc($m, $kind, $p, $party); $upd = ['doc_id' => $did, 'note' => $note ?: $made]; }
                 DB::table('link_inbox')->where('id', $row->id)->update($upd + ['status' => 'applied', 'updated_at' => now()]);
             });
         } catch (\Throwable $e) {

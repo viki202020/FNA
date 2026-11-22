@@ -28,7 +28,7 @@ Inventorise keeps the same secret in its own `.env`. Never put the secret in cha
 ## What FNA does
 - Order: stored as an Order. It posts nothing.
 - Bill or invoice: stored as a draft bill or invoice, linked to its order. A person checks and posts it. If it is already posted, a later change is not applied.
-- A supplier or customer FNA does not know is not created automatically. The message is held on the "To confirm" screen until a person matches or creates the party.
+- Party matching: a party Inventorise's id was matched to before; else the same GSTIN (the name may differ); else, when no GSTIN is sent, the same name. If the name + GSTIN combination is not in FNA, the supplier or customer is created automatically. A message with no party name waits on the "To confirm" screen.
 
 Replies: `200 {"status":"applied"|"held"|"error","note":...}`, `403` not signed correctly, `422` fields missing.
 Nothing is sent back to Inventorise. Payments there come from Xero.
