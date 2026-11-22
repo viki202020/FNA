@@ -131,7 +131,7 @@ class MerchantController extends Controller{
          'gst' => [function($attribute,$value,$fail){ $message = TaxId::error($value); if($message){ $fail($message); } }],
       ]);
       if(!empty($req->input('entity_id'))){
-         $entity = Entity::find($req->input('entity_id'));
+         $entity = Entity::where('merchant_id',Session::get('merchant_id'))->findOrFail($req->input('entity_id'));
          $entity->name = $name;
          $entity->gst_number = $gst;
          $entity->frequency = $frequency;
@@ -222,7 +222,7 @@ class MerchantController extends Controller{
       ]);
       
       if(!empty($req->input('customer_id'))){
-         $customer = Customer::find($req->input('customer_id'));
+         $customer = Customer::where('merchant',Session::get('merchant_id'))->findOrFail($req->input('customer_id'));
          $customer->title = $title;
          $customer->first_name = $first_name;
          $customer->last_name = $last_name; 
@@ -332,7 +332,7 @@ class MerchantController extends Controller{
          'account_type' => 'required',  
       ]);
       if(!empty($req->input('head_id'))){
-         $head = Head::find($req->input('head_id'));
+         $head = Head::where(function($q){ $q->where('merchant',Session::get('merchant_id'))->orWhereNull('merchant'); })->findOrFail($req->input('head_id'));
          $head->account_type_id = $account_type;
          $head->name = $name; 
          $head->description = $description;
@@ -465,7 +465,7 @@ class MerchantController extends Controller{
 
          foreach ($col_type as $key => $value){
             
-            $rule = Rule::find($req->input('head_id'));            
+            $rule = Rule::where('merchant_id',Session::get('merchant_id'))->findOrFail($req->input('head_id'));            
             $rule->update([
                'col_type' => $value,
                'rule_condition' => $rule_condition[$key],
@@ -901,7 +901,7 @@ class MerchantController extends Controller{
       }
       $select_head = $input['select_head'];
       $manually_id = $input['manually_id'];
-      $statement = Statement::find($manually_id);
+      $statement = Statement::where('merchant_id',Session::get('merchant_id'))->findOrFail($manually_id);
       if(!FinancialYears::isOpen($statement->fyear)){
          return response()->json(['success'=>false,'message'=>FinancialYears::message($statement->fyear)]);
       }
@@ -1101,7 +1101,7 @@ class MerchantController extends Controller{
          'price' => 'required',
       ]);
       if(!empty($input['product_id'])){         
-         $product = Product::find($input['product_id']); 
+         $product = Product::where('merchant_id',Session::get('merchant_id'))->findOrFail($input['product_id']); 
          $product->type = $input['type'];
          $product->name = $input['name'];
          $product->unit = $input['unit'];
@@ -1392,7 +1392,7 @@ class MerchantController extends Controller{
                   ->get(['statement.*', 'head.name']);
       foreach ($data as $key => $row){
          $data[$key]->st_date = date('d-m-Y',strtotime($row['st_date']));
-         $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where merchant_id='".Session::get('merchant_id')."' and status=1 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE('".$row['st_date']."', '%d-%m-%Y') and id!='".$row['id']."' and head_id='".$row['head_id']."' and fyear='".$selected_year."'");
+         $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where merchant_id=? and status=1 and STR_TO_DATE(st_date, '%d-%m-%Y') < STR_TO_DATE(?, '%d-%m-%Y') and id!=? and head_id=? and fyear=?", [Session::get('merchant_id'), $row['st_date'], $row['id'], $row['head_id'], $selected_year]);
         $pending_amount1 = $statement['0']->debitAmount - $statement['0']->creditAmount;
          if($i==1){
 
@@ -1643,7 +1643,7 @@ class MerchantController extends Controller{
          
          if($from!=""){
             $form_date = date('d-m-Y',strtotime($from));
-            $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where status=1 and opening=0 and fyear='".$selected_year."' and merchant_id='".Session::get('merchant_id')."' and head_id='".$value->id."' and STR_TO_DATE(st_date, '%d-%m-%Y') >= STR_TO_DATE('".$form_date."', '%d-%m-%Y')");
+            $statement = DB::select("select sum(debit) as debitAmount,sum(credit) as creditAmount from statement where status=1 and opening=0 and fyear=? and merchant_id=? and head_id=? and STR_TO_DATE(st_date, '%d-%m-%Y') >= STR_TO_DATE(?, '%d-%m-%Y')", [$selected_year, Session::get('merchant_id'), $value->id, $form_date]);
          }else{
             $statement = Statement::select(DB::raw("sum(debit) as debitAmount,sum(credit) as creditAmount"))
             ->where('opening',0)
