@@ -13,6 +13,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\GstReportsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TdsController;
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\Gstr2bController;
 use App\Http\Controllers\PaymentReversalController;
 use App\Http\Controllers\AuthController;
@@ -125,6 +126,10 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::get('/merchant/tds', [TdsController::class,'index']);
    Route::post('/merchant/tds/challan', [TdsController::class,'save']);
    Route::get('/merchant/tds/{part}.csv', [TdsController::class,'csv']);
+   Route::get('/merchant/budgets', [BudgetController::class,'index']);
+   Route::post('/merchant/budgets/save', [BudgetController::class,'save']);
+   Route::get('/merchant/budgets/template', [BudgetController::class,'template']);
+   Route::post('/merchant/budgets/upload', [BudgetController::class,'upload']);
    Route::get('/merchant/gst-reports', [GstReportsController::class,'index']);
    Route::get('/merchant/gst-reports/{table}.csv', [GstReportsController::class,'csv']);
    Route::get('/merchant/data-analytics', [AnalyticsController::class,'index']);

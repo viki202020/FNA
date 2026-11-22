@@ -12,6 +12,7 @@
       ['Balance sheet', '/merchant/balance-sheet', ['merchant/balance-sheet*']],
       ['Profit and loss', '/merchant/profit-loss', ['merchant/profit-loss*']],
       ['Schedule III', '/merchant/financial-statements', ['merchant/financial-statements*']],
+      ['Budgets', '/merchant/budgets', ['merchant/budgets*']],
       ['TDS return', '/merchant/tds', ['merchant/tds*']],
       ['Data analytics', '/merchant/data-analytics', ['merchant/data-analytics*']],
       ['head', 'Upload'],
