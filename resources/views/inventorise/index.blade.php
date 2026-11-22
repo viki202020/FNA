@@ -28,7 +28,7 @@
    <div class="text-muted" style="font-size:13px">{{ $r->note }}</div>
    <div class="d-flex flex-wrap gap-2 align-items-end mt-2">
       <form method="post" action="{{ url('merchant/inventorise/confirm') }}" class="d-flex gap-2 align-items-end" style="margin:0">@csrf<input type="hidden" name="ext_key" value="{{ $r->party_key ?: 'name:'.mb_strtolower($r->p['party']['name'] ?? '') }}">
-         <div><label>MATCH TO EXISTING</label><select name="customer_id" class="form-select" required style="min-width:260px"><option value="">Choose</option>@foreach($parties as $x)<option value="{{ $x->id }}">{{ $x->display_name ?: trim($x->first_name.' '.$x->last_name) }} ({{ $x->type==4 ? 'supplier' : 'customer' }})</option>@endforeach</select></div>
+         <div><label>MATCH TO EXISTING</label><select name="customer_id" class="form-select" required style="min-width:260px"><option value="">Choose</option>@foreach($parties as $x)@if($x->type == (str_starts_with($r->type,'purchase') ? 4 : 1))<option value="{{ $x->id }}">{{ $x->display_name ?: trim($x->first_name.' '.$x->last_name) }} ({{ $x->type==4 ? 'supplier' : 'customer' }})</option>@endif @endforeach</select></div>
          <button class="btn btn-primary">Confirm</button></form>
       <form method="post" action="{{ url('merchant/inventorise/create-party') }}" style="margin:0">@csrf<input type="hidden" name="inbox_id" value="{{ $r->id }}"><button class="btn btn-outline-primary">Create as new</button></form>
    </div></div>
