@@ -21,7 +21,7 @@
 </tbody></table></div>
 
 @elseif($tab==='held')
-<p class="text-muted" style="max-width:950px">A supplier or customer that FNA does not know is created automatically. Only a message that could not be filed waits here, for example one with no party name. Match it to a party you already have, or create it.</p>
+<p class="text-muted" style="max-width:950px">A supplier or customer sent <b>with a GSTIN</b> is matched on the GSTIN, or created automatically if FNA has no party with it. A message sent <b>without a GSTIN</b> from a party FNA does not know waits here for your approval. Match it to a party you already have, or create it.</p>
 @forelse($held as $r)
 <div class="fna-tablebox" style="max-width:1000px;padding:12px;margin-bottom:10px">
    <div><b>{{ $typeName[$r->type] ?? $r->type }} {{ $r->ref }}</b> from <b>{{ $r->p['party']['name'] ?? '?' }}</b> @if(!empty($r->p['party']['gstin'])) (GSTIN {{ $r->p['party']['gstin'] }}) @endif</div>

@@ -41,8 +41,8 @@ class InventoriseLink
      * Finds the FNA party for a message:
      *   1. a match you confirmed before (Inventorise's own id for the party);
      *   2. the same GSTIN (a different spelling of the name is fine);
-     *   3. no GSTIN in the message: the same name, ignoring capitals and extra spaces.
-     * Null when the name + GSTIN combination is not in FNA: the caller then creates the party.
+     *   3. no GSTIN in the message: the same name, ignoring capitals and extra spaces, if exactly one party has it.
+     * Null when nothing matches. With a GSTIN the caller then creates the party; without one the message is held for approval.
      */
     public static function findParty($merchant, $kind, array $party)
     {
@@ -58,7 +58,8 @@ class InventoriseLink
         }
         $name = mb_strtolower(trim(preg_replace('/\s+/', ' ', (string) ($party['name'] ?? ''))));
         if ($name !== '') {
-            return DB::table('customer')->where('merchant', $merchant)->where('type', $type)->whereRaw("LOWER(TRIM(REPLACE(display_name, '  ', ' '))) = ?", [$name])->orderBy('id')->first();
+            $same = DB::table('customer')->where('merchant', $merchant)->where('type', $type)->whereRaw("LOWER(TRIM(REPLACE(display_name, '  ', ' '))) = ?", [$name])->orderBy('id')->limit(2)->get();
+            return $same->count() === 1 ? $same[0] : null;   // two parties with one name: a person decides
         }
         return null;
     }
@@ -86,6 +87,11 @@ class InventoriseLink
         try {
             $made = null;
             $party = self::findParty($m, $kind, (array) ($p['party'] ?? []));
+            if (!$party && TaxId::clean($p['party']['gstin'] ?? '') === '') {
+                // GSTIN decides. Without one, a party FNA does not already know is never created on its own: a person approves it.
+                DB::table('link_inbox')->where('id', $inboxId)->update(['status' => 'held', 'note' => 'No GSTIN was sent and "' . ($p['party']['name'] ?? '?') . '" is not a ' . ($kind === 'purchase' ? 'supplier' : 'customer') . ' FNA knows. Approval awaited: match it to an existing party or create it.', 'updated_at' => now()]);
+                return DB::table('link_inbox')->where('id', $inboxId)->first();
+            }
             if (!$party) {
                 try { $party = self::createParty($m, $kind, (array) ($p['party'] ?? [])); $made = 'New ' . ($kind === 'purchase' ? 'supplier' : 'customer') . ' "' . ($party->display_name) . '" was created in FNA from this message. Add its TDS details under Customers if needed.'; }
                 catch (\RuntimeException $e) {
