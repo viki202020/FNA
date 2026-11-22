@@ -32,7 +32,7 @@
                <td>
                   @if($S)<select class="form-select pick" name="product_id[]"><option value="">(type below or pick)</option>@foreach($products as $pr)<option value="{{ $pr->id }}" data-rate="{{ $pr->price }}" data-tax="{{ $pr->tax_rate }}" data-hsn="{{ $pr->hsn_code }}" data-name="{{ $pr->name }}">{{ $pr->name }}</option>@endforeach</select>@endif
                   <input class="form-control mt-1" name="description[]" placeholder="Description">
-                  <input type="hidden" name="hsn[]">
+                  <input class="form-control mt-1 hsn" name="hsn[]" placeholder="HSN / SAC" maxlength="20" style="max-width:160px">
                </td>
                @if(!$S)<td><select class="form-select" name="head_id[]"><option value="">Select</option>@foreach($heads as $h)<option value="{{ $h->id }}">{{ $h->name }}</option>@endforeach</select></td>@endif
                <td><select class="form-select" name="department_id[]"><option value="">-</option>@foreach($departments as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach</select></td>

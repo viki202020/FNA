@@ -10,6 +10,7 @@ use App\Http\Controllers\JournalController;
 use App\Http\Controllers\OpeningBalanceController;
 use App\Http\Controllers\Schedule3Controller;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\GstReportsController;
 use App\Http\Controllers\Gstr2bController;
 use App\Http\Controllers\PaymentReversalController;
 use App\Http\Controllers\AuthController;
@@ -110,6 +111,8 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::post('/merchant/gstr2b/draft-all', [Gstr2bController::class,'draftAll']);
    Route::post('/merchant/gstr2b/{id}/draft', [Gstr2bController::class,'draft'])->whereNumber('id');
    Route::post('/merchant/billing/{id}/accounts', [BillingController::class,'accounts'])->whereNumber('id');
+   Route::get('/merchant/gst-reports', [GstReportsController::class,'index']);
+   Route::get('/merchant/gst-reports/{table}.csv', [GstReportsController::class,'csv']);
    Route::get('/merchant/data-analytics', [AnalyticsController::class,'index']);
    Route::get('/merchant/financial-statements', [Schedule3Controller::class,'index']);
    Route::get('/merchant/financial-statements/export', [Schedule3Controller::class,'export']);
