@@ -17,3 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Inventorise link: signed, no login. See InventoriseApiController.
+Route::post('/inventorise', [\App\Http\Controllers\InventoriseApiController::class, 'receive'])->middleware('throttle:60,1');

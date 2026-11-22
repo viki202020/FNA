@@ -130,6 +130,9 @@ Route::group(['middleware' => ['checklogin']], function () {
    Route::post('/merchant/budgets/save', [BudgetController::class,'save']);
    Route::get('/merchant/budgets/template', [BudgetController::class,'template']);
    Route::post('/merchant/budgets/upload', [BudgetController::class,'upload']);
+   Route::get('/merchant/inventorise', [\App\Http\Controllers\InventoriseScreenController::class,'index']);
+   Route::post('/merchant/inventorise/confirm', [\App\Http\Controllers\InventoriseScreenController::class,'confirm']);
+   Route::post('/merchant/inventorise/create-party', [\App\Http\Controllers\InventoriseScreenController::class,'createParty']);
    Route::get('/merchant/gst-reports', [GstReportsController::class,'index']);
    Route::get('/merchant/gst-reports/{table}.csv', [GstReportsController::class,'csv']);
    Route::get('/merchant/data-analytics', [AnalyticsController::class,'index']);

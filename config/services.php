@@ -30,4 +30,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+
+    // Link with Inventorise: the shared secret and the FNA company that receives what it sends.
+    'inventorise' => [
+        'secret' => env('INVENTORISE_SECRET', ''),
+        'merchant' => env('INVENTORISE_MERCHANT_ID', 0),
+    ],
+
 ];

@@ -18,6 +18,7 @@
       ['head', 'Upload'],
       ['Bank txns file', '/merchant/upload-csv', ['merchant/upload-csv*']],
       ['Opening balances', '/merchant/opening-balance', ['merchant/opening-balance*']],
+      ['Inventorise', '/merchant/inventorise', ['merchant/inventorise*']],
       ['GST reports', '/merchant/gst-reports', ['merchant/gst-reports*']],
       ['GSTR-2B', '/merchant/gstr2b', ['merchant/gstr2b*']],
       ['Journal txns file', '/merchant/upload-expencess-csv', ['merchant/upload-expencess-csv*']],
