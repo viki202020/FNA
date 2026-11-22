@@ -18,7 +18,7 @@
          <td><form method="post" action="{{ url('merchant/users/'.$r->id.'/toggle') }}" style="margin:0">@csrf<button class="btn btn-sm btn-outline-primary">{{ $r->status ? 'Switch off' : 'Switch on' }}</button></form></td></tr>
    @endforeach
    </tbody></table></div>
-<div class="fna-section-title">New login</div>
+<div class="fna-section-title">New login ({{ count($rows) }} of 3 used)</div>
 <form method="post" action="{{ url('merchant/users') }}" class="d-flex flex-wrap gap-2 align-items-end" style="max-width:900px">@csrf
    <div><label>NAME</label><input class="form-control" name="name" required maxlength="100" value="{{ old('name') }}"></div>
    <div><label>EMAIL</label><input class="form-control" type="email" name="email" required maxlength="200" value="{{ old('email') }}"></div>

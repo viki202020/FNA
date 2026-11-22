@@ -40,6 +40,9 @@ class AccountController extends Controller
     public function userAdd(Request $request)
     {
         $request->validate(['name' => 'required|max:100', 'email' => 'required|email|max:200', 'role' => 'required|in:admin,accountant', 'password' => 'required|string|min:10|max:100']);
+        if ($this->logins()->count() >= 3) {
+            return back()->withInput()->withErrors(['A company can have at most 3 logins. Switch one off and it still counts, so ask me if you need to replace one.']);
+        }
         if (DB::table('merchant')->whereRaw('LOWER(email)=?', [strtolower($request->input('email'))])->exists()) {
             return back()->withInput()->withErrors(['email' => 'That email already has a login.']);
         }
