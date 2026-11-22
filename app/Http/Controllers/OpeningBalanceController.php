@@ -38,7 +38,7 @@ class OpeningBalanceController extends Controller
 
     public function preview(Request $request)
     {
-        $request->validate(['csv_file' => 'required|file', 'header_row' => 'required|integer|min:0', 'last_row' => 'required|integer|min:1', 'as_at' => 'required|date',
+        $request->validate(['csv_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240', 'header_row' => 'required|integer|min:0', 'last_row' => 'required|integer|min:1', 'as_at' => 'required|date',
             'layout' => 'required|in:two,one', 'name_col' => 'required|integer|min:1']);
         $sheets = Excel::toArray(new RawRows, $request->file('csv_file'));
         $rows = $sheets[0] ?? [];

@@ -323,14 +323,14 @@
                   if(select_head==e.id){
                      selected = "selected";
                   }
-                  head_html+='<option value="'+e.id+'" '+selected+' data-mandatory_category="'+e.mandatory_category+'" data-mandatory_customer="'+e.mandatory_customer+'" data-mandatory_supplier="'+e.mandatory_supplier+'">'+e.name+'</option>';
+                  head_html+='<option value="'+esc(e.id)+'" '+selected+' data-mandatory_category="'+esc(e.mandatory_category)+'" data-mandatory_customer="'+esc(e.mandatory_customer)+'" data-mandatory_supplier="'+esc(e.mandatory_supplier)+'">'+esc(e.name)+'</option>';
                });
             }
             $(".head").html(head_html);
             let account_html = "<option value=''>Select Account</option>";
             if(res[0].account_type.length>0){              
                res[0].account_type.forEach(function(e){
-                  account_html+='<option value="'+e.id+'">'+e.name+'</option>';
+                  account_html+='<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
                });
             }
             $("#account_type").html(account_html);

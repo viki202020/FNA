@@ -73,7 +73,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_entity" data-id="'.$row->id.'" data-gst_number="'.$row->gst_number.'" data-frequency="'.$row->frequency.'" data-address="'.$row->address.'" data-city="'.$row->city.'" data-state="'.$row->state.'" data-pincode="'.$row->pincode.'" data-mobile="'.$row->mobile.'" data-email="'.$row->email.'" data-name="'.$row->name.'" data-financial_year="'.$row->financial_year.'" data-start_year="'.$row->financial_year_start.'" data-end_year="'.$row->financial_year_end.'">Edit</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_entity" data-id="'.e($row->id).'" data-gst_number="'.e($row->gst_number).'" data-frequency="'.e($row->frequency).'" data-address="'.e($row->address).'" data-city="'.e($row->city).'" data-state="'.e($row->state).'" data-pincode="'.e($row->pincode).'" data-mobile="'.e($row->mobile).'" data-email="'.e($row->email).'" data-name="'.e($row->name).'" data-financial_year="'.e($row->financial_year).'" data-start_year="'.e($row->financial_year_start).'" data-end_year="'.e($row->financial_year_end).'">Edit</a>';
                return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -176,7 +176,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_customer" data-id="'.$row->id.'" data-title="'.$row->title.'" data-first_name="'.$row->first_name.'" data-last_name="'.$row->last_name.'" data-email="'.$row->email.'" data-phone="'.$row->phone.'" data-mobile="'.$row->mobile.'" data-display_name="'.$row->display_name.'" data-gst_type="'.$row->gst_type.'" data-gst="'.$row->gst.'" data-billing_street="'.$row->billing_street.'" data-billing_city="'.$row->billing_city.'" data-billing_state="'.$row->billing_state.'" data-billing_pincode="'.$row->billing_pincode.'" data-billing_country="'.$row->billing_country.'" data-shipping_street="'.$row->shipping_street.'" data-shipping_city="'.$row->shipping_city.'" data-shipping_state="'.$row->shipping_state.'" data-shipping_pincode="'.$row->shipping_pincode.'" data-shipping_country="'.$row->shipping_country.'" data-category="'.$row->category_id.'" data-pan="'.$row->pan.'" data-tds_status="'.$row->tds_status.'" data-tds_rate="'.$row->tds_rate.'" data-tds_section="'.$row->tds_section.'" data-type="'.$row->type.'">Edit</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_customer" data-id="'.e($row->id).'" data-title="'.e($row->title).'" data-first_name="'.e($row->first_name).'" data-last_name="'.e($row->last_name).'" data-email="'.e($row->email).'" data-phone="'.e($row->phone).'" data-mobile="'.e($row->mobile).'" data-display_name="'.e($row->display_name).'" data-gst_type="'.e($row->gst_type).'" data-gst="'.e($row->gst).'" data-billing_street="'.e($row->billing_street).'" data-billing_city="'.e($row->billing_city).'" data-billing_state="'.e($row->billing_state).'" data-billing_pincode="'.e($row->billing_pincode).'" data-billing_country="'.e($row->billing_country).'" data-shipping_street="'.e($row->shipping_street).'" data-shipping_city="'.e($row->shipping_city).'" data-shipping_state="'.e($row->shipping_state).'" data-shipping_pincode="'.e($row->shipping_pincode).'" data-shipping_country="'.e($row->shipping_country).'" data-category="'.e($row->category_id).'" data-pan="'.e($row->pan).'" data-tds_status="'.e($row->tds_status).'" data-tds_rate="'.e($row->tds_rate).'" data-tds_section="'.e($row->tds_section).'" data-type="'.e($row->type).'">Edit</a>';
                return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -290,7 +290,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_head" data-id="'.$row->id.'" data-account_type="'.$row->account_type_id.'"  data-name="'.$row->name.'" data-description="'.$row->description.'" data-applicable_gst="'.$row->applicable_gst.'" data-tax_code="'.$row->tax_code.'" data-status="'.$row->status.'" data-balance="'.$row->balance.'" data-balance_date="'.$row->balance_date.'" data-balance_type="'.$row->balance_type.'" data-mandatory_category="'.$row->mandatory_category.'" data-mandatory_customer="'.$row->mandatory_customer.'" data-mandatory_supplier="'.$row->mandatory_supplier.'" data-department_required="'.$row->department_required.'" data-parent_id="'.$row->parent_id.'">Edit</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_head" data-id="'.e($row->id).'" data-account_type="'.e($row->account_type_id).'"  data-name="'.e($row->name).'" data-description="'.e($row->description).'" data-applicable_gst="'.e($row->applicable_gst).'" data-tax_code="'.e($row->tax_code).'" data-status="'.e($row->status).'" data-balance="'.e($row->balance).'" data-balance_date="'.e($row->balance_date).'" data-balance_type="'.e($row->balance_type).'" data-mandatory_category="'.e($row->mandatory_category).'" data-mandatory_customer="'.e($row->mandatory_customer).'" data-mandatory_supplier="'.e($row->mandatory_supplier).'" data-department_required="'.e($row->department_required).'" data-parent_id="'.e($row->parent_id).'">Edit</a>';
                return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -395,7 +395,7 @@ class MerchantController extends Controller{
       //    return Datatables::of($data)
       //    ->addIndexColumn()
       //    ->addColumn('action', function($row){
-      //          $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_head" data-id="'.$row->id.'" data-account_type="'.$row->account_type.'" data-account_detail="'.$row->account_detail.'" data-name="'.$row->name.'" data-description="'.$row->description.'" data-parent_account="'.$row->parent_account.'" data-tax_code="'.$row->tax_code.'" data-status="'.$row->status.'" data-balance="'.$row->balance.'" data-balance_date="'.$row->balance_date.'">Edit</a>';
+      //          $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_head" data-id="'.e($row->id).'" data-account_type="'.e($row->account_type).'" data-account_detail="'.e($row->account_detail).'" data-name="'.e($row->name).'" data-description="'.e($row->description).'" data-parent_account="'.e($row->parent_account).'" data-tax_code="'.e($row->tax_code).'" data-status="'.e($row->status).'" data-balance="'.e($row->balance).'" data-balance_date="'.e($row->balance_date).'">Edit</a>';
       //          return $actionBtn;
       //       })
       //    ->rawColumns(['action'])
@@ -417,7 +417,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_rule" data-id="'.$row->id.'" data-col_type="'.$row->col_type.'" data-rule_condition="'.$row->rule_condition.'" data-content="'.$row->content.'" data-rule_action_type="'.$row->rule_action_type.'" data-head_id="'.$row->head_id.'" data-col_type1="'.$row->col_type1.'" data-rule_condition1="'.$row->rule_condition1.'" data-content1="'.$row->content1.'" data-status="'.$row->status.'" data-rule_name="'.$row->rule_name.'" data-rule_for="'.$row->rule_for.'" data-category="'.$row->category.'" data-customer="'.$row->customer.'" data-supplier="'.$row->supplier.'" data-rule_in="'.$row->rule_in.'">Edit</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_rule" data-id="'.e($row->id).'" data-col_type="'.e($row->col_type).'" data-rule_condition="'.e($row->rule_condition).'" data-content="'.e($row->content).'" data-rule_action_type="'.e($row->rule_action_type).'" data-head_id="'.e($row->head_id).'" data-col_type1="'.e($row->col_type1).'" data-rule_condition1="'.e($row->rule_condition1).'" data-content1="'.e($row->content1).'" data-status="'.e($row->status).'" data-rule_name="'.e($row->rule_name).'" data-rule_for="'.e($row->rule_for).'" data-category="'.e($row->category).'" data-customer="'.e($row->customer).'" data-supplier="'.e($row->supplier).'" data-rule_in="'.e($row->rule_in).'">Edit</a>';
                return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -641,7 +641,10 @@ class MerchantController extends Controller{
          "amount_contain"=>$amount_contain
       );
       $import = new UsersImport($data);
-      Excel::import($import, $req->file('csv_file')->store('temp'));
+      $req->validate(['csv_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240']);
+      $stored = $req->file('csv_file')->store('temp');
+      Excel::import($import, $stored);
+      \Illuminate\Support\Facades\Storage::delete($stored);   // the uploaded file is not kept on the server
       $returns = \App\Support\ReturnDetector::scan();   // payments the bank has taken back are recognised and reversed
       return redirect('merchant/uncategorized-data')->with('bank_upload_summary', [
          'returns'  => $returns,
@@ -744,7 +747,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               // $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_rule" data-id="'.$row->id.'">Edit</a>';
+               // $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm edit_rule" data-id="'.e($row->id).'">Edit</a>';
                // return $actionBtn;
             })
          ->rawColumns(['action'])
@@ -776,11 +779,11 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('action', function($row){
-               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm row_apply_rule" data-id="659" style="background-color: #dfa350;">Apply Rule</a> <a href="javascript:void(0)" class="edit btn btn-success btn-sm row_manually" data-id="'.$row->id.'" data-debit="'.$row->debit.'" data-credit="'.$row->credit.'" data-voucher_no="'.$row->voucher_no.'" style="background-color: #0be4598c;" >Assign Manually</a>';
+               $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-success btn-sm row_apply_rule" data-id="659" style="background-color: #dfa350;">Apply Rule</a> <a href="javascript:void(0)" class="edit btn btn-success btn-sm row_manually" data-id="'.e($row->id).'" data-debit="'.e($row->debit).'" data-credit="'.e($row->credit).'" data-voucher_no="'.e($row->voucher_no).'" style="background-color: #0be4598c;" >Assign Manually</a>';
                return $actionBtn;
             })
          ->addColumn('bulk_check', function($row){
-               $checkBtn = '<input type="checkbox" class="check" value="'.$row->id.'" data-debit="'.$row->debit.'" data-credit="'.$row->credit.'" data-remark="'.$row->remark.'" data-st_date="'.$row->st_date.'">';
+               $checkBtn = '<input type="checkbox" class="check" value="'.e($row->id).'" data-debit="'.e($row->debit).'" data-credit="'.e($row->credit).'" data-remark="'.e($row->remark).'" data-st_date="'.e($row->st_date).'">';
                return $checkBtn;
             })
          ->rawColumns(['action','bulk_check'])
@@ -926,7 +929,7 @@ class MerchantController extends Controller{
          return Datatables::of($data)
          ->addIndexColumn()
          ->addColumn('hname', function($row) use ($selected_year){
-               return '<a href="javascript:void(0)" class="ledger-link view_all" data-id="'.$row->head_id.'">'.e($row->name).'</a>';
+               return '<a href="javascript:void(0)" class="ledger-link view_all" data-id="'.e($row->head_id).'">'.e($row->name).'</a>';
             })
          ->addColumn('debit_fmt', function($row){ return $row->debitTotal > 0 ? number_format($row->debitTotal,2) : ''; })
          ->addColumn('credit_fmt', function($row){ return $row->creditTotal > 0 ? number_format($row->creditTotal,2) : ''; })
@@ -1211,7 +1214,10 @@ class MerchantController extends Controller{
          "amount_contain"=>$amount_contain
       );
       $import = new ExpencessCsvImport($data);
-      Excel::import($import, $req->file('csv_file')->store('temp'));
+      $req->validate(['csv_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240']);
+      $stored = $req->file('csv_file')->store('temp');
+      Excel::import($import, $stored);
+      \Illuminate\Support\Facades\Storage::delete($stored);   // the uploaded file is not kept on the server
       // After every upload: say how many vouchers were created and whether each one balances.
       $unbalanced = [];
       $line_count = 0;

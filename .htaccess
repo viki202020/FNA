@@ -5,6 +5,11 @@
 
     RewriteEngine On
 
+    # The site may be served from this folder (assets are under /public). Never hand out the application's internals:
+    # settings (.env), logs and uploads (storage), code, libraries, database scripts, version history and build files.
+    RewriteRule ^(\.env|\.git|\.gitignore|\.gitattributes|storage|vendor|database|app|config|routes|resources|bootstrap|tests|artisan|composer\.(json|lock)|package\.json|webpack\.mix\.js|phpunit\.xml|README\.md|dev-router\.php)(/|$) - [F,L,NC]
+    RewriteRule ^\.(?!well-known) - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

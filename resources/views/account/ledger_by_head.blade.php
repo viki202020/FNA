@@ -121,7 +121,7 @@
             let statement_row = "<table class='table'><thead><tr style='background-color:#042e46;color:white;'><th>Date</th><th>Remark</th><th>Account Head</th><th>Debit</th><th>Credit</th></tr></thead><tbody>";
             let debit_total = 0; let credit_total = 0;        
             res.data.forEach(function(e){                   
-               statement_row+='<tr><td>'+e.st_date+'</td><td>'+e.remark+'</td><td>'+e.head+'</td><td style="text-align:right">'+e.debit+'</td><td style="text-align:right">'+e.credit+'</td></tr>';
+               statement_row+='<tr><td>'+esc(e.st_date)+'</td><td>'+esc(e.remark)+'</td><td>'+esc(e.head)+'</td><td style="text-align:right">'+esc(e.debit)+'</td><td style="text-align:right">'+esc(e.credit)+'</td></tr>';
                if(e.debit!=""){
                   debit_total = parseFloat(debit_total) + parseFloat(e.debit);
                }

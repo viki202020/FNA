@@ -326,7 +326,7 @@
                   //    html = 'Rule '+e.rule_name+': '+e.col_type+' contains '+e.rule_condition+' '+e.content+' and '+e.col_type1+' is '+e.rule_condition1+' '+c1+'Add To '+e.rule_action_type+' to account head '+e.name;
                   // }
                   html+='Rule '+e.rule_name;
-                  rule_html+='<option value="'+e.id+'">'+html+'</option>';
+                  rule_html+='<option value="'+esc(e.id)+'">'+html+'</option>';
                });
                $("#select_rule").html(rule_html);
             }
@@ -380,14 +380,14 @@
             let head_html = "<option value=''>Select Account Head</option>";
             if(res[0].head.length>0){              
                res[0].head.forEach(function(e){
-                  head_html+='<option value="'+e.id+'">'+e.name+'</option>';
+                  head_html+='<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
                });
             }
             $(".head").html(head_html);
             let account_html = "<option value=''>Select Account Head</option>";
             if(res[0].account_type.length>0){              
                res[0].account_type.forEach(function(e){
-                  account_html+='<option value="'+e.id+'">'+e.name+'</option>';
+                  account_html+='<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
                });
             }
             $("#account_type").html(account_html);

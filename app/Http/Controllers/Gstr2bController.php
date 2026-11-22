@@ -27,7 +27,7 @@ class Gstr2bController extends Controller
 
     public function upload(Request $request)
     {
-        $request->validate(['gstr_file' => 'required|file']);
+        $request->validate(['gstr_file' => 'required|file|mimes:json,xlsx,xls,csv,txt|max:10240']);
         $file = $request->file('gstr_file');
         try {
             [$period, $lines, $creditNotes] = Gstr2b::parse($file->getRealPath(), $file->getClientOriginalExtension());

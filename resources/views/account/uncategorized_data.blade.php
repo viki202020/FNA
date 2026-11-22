@@ -337,7 +337,7 @@
                res.forEach(function(e){
                   let html = "";                  
                   html+='Rule '+e.rule_name;
-                  rule_html+='<option value="'+e.id+'">'+html+'</option>';
+                  rule_html+='<option value="'+esc(e.id)+'">'+html+'</option>';
                });
                $("#select_rule").html(rule_html);
             }
@@ -397,14 +397,14 @@
             let head_html = "<option value=''>Select Head</option>";
             if(res[0].head.length>0){              
                res[0].head.forEach(function(e){
-                  head_html+='<option value="'+e.id+'">'+e.name+'</option>';
+                  head_html+='<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
                });
             }
             $(".head").html(head_html);
             let account_html = "<option value=''>Select Account</option>";
             if(res[0].account_type.length>0){              
                res[0].account_type.forEach(function(e){
-                  account_html+='<option value="'+e.id+'">'+e.name+'</option>';
+                  account_html+='<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
                });
             }
             $("#account_type").html(account_html);
@@ -459,7 +459,7 @@
             if(res[0].head.length>0){              
               res[0].head.forEach(function(e){
                  let selected = "";                 
-                 head_html+='<option value="'+e.id+'" '+selected+'>'+e.name+'</option>';
+                 head_html+='<option value="'+esc(e.id)+'" '+selected+'>'+esc(e.name)+'</option>';
               });
             }
             $("#manually_id").val(id);            
@@ -477,11 +477,11 @@
                         selected = "selected";
                         assign_status = "A";
                        }                
-                       head_html+='<option value="'+e1.id+'" '+selected+'>'+e1.name+'</option>';
+                       head_html+='<option value="'+esc(e1.id)+'" '+selected+'>'+esc(e1.name)+'</option>';
                     });
                   }
                   head_html+='</select>';                      
-                  statement_row+='<tr><td>'+e.st_date+'</td><td>'+e.voucher_no+'</td><td>'+e.remark+'</td><td><input type="hidden" name="voucher_row[]" value="'+e.id+'">'+e.debit+'</td><td>'+e.credit+'</td><td>'+head_html+'</td><td>'+assign_status+'</td></tr>';
+                  statement_row+='<tr><td>'+esc(e.st_date)+'</td><td>'+esc(e.voucher_no)+'</td><td>'+esc(e.remark)+'</td><td><input type="hidden" name="voucher_row[]" value="'+esc(e.id)+'">'+esc(e.debit)+'</td><td>'+esc(e.credit)+'</td><td>'+head_html+'</td><td>'+esc(assign_status)+'</td></tr>';
                });
                statement_row+="</tbody></table>";
                $(".voucher_entry").html(statement_row);
@@ -565,7 +565,7 @@
       $(".check").each(function(){
          if($(this).prop("checked")==true){
             row_id.push($(this).val());
-            html+='<tr><td>'+$(this).attr('data-st_date')+'</td><td>'+$(this).attr('data-remark')+'</td><td>'+$(this).attr('data-debit')+'</td><td>'+$(this).attr('data-credit')+'</td></tr>';
+            html+='<tr><td>'+esc($(this).attr('data-st_date'))+'</td><td>'+esc($(this).attr('data-remark'))+'</td><td>'+esc($(this).attr('data-debit'))+'</td><td>'+esc($(this).attr('data-credit'))+'</td></tr>';
          }         
       });
       html+='</tbody></table>';
@@ -585,7 +585,7 @@
             if(res[0].head.length>0){              
               res[0].head.forEach(function(e){
                  let selected = "";                 
-                 head_html+='<option value="'+e.id+'" '+selected+'>'+e.name+'</option>';
+                 head_html+='<option value="'+esc(e.id)+'" '+selected+'>'+esc(e.name)+'</option>';
               });
             }
             $(".bulk_entry").html(html);

@@ -136,7 +136,7 @@
                if(res[0].head.length>0){              
                   res[0].head.forEach(function(e){                     
                      if(head_arr.indexOf(e.name)==-1){
-                        head_html+='<tr><td>'+e.name+'</td></tr>';
+                        head_html+='<tr><td>'+esc(e.name)+'</td></tr>';
                      }              
                      
                   });
