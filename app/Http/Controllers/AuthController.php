@@ -30,7 +30,8 @@ class AuthController extends Controller
         session()->forget(['pending_id', 'pending_at', 'totp_setup_secret']);
         session()->regenerate();
         session()->put('id', $user->id);
-        session()->put('merchant_id', $user->id);
+        session()->put('merchant_id', $user->company_id ?: $user->id);   // a second login works on its company's books
+        session()->put('role', $user->role ?: 'admin');
         session()->put('name', $user->name);
         session()->put('mobile', $user->mobile);
         session()->put('email', $user->email);

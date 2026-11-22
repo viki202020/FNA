@@ -462,7 +462,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
             $statement->remark = $row[$description_col];
             $statement->st_date = date('Y-m-d',strtotime($row[$date_col]));
             $statement->status = $status;   // both entries of a line count, or neither does
-            $statement->merchant_id = Session::get('id');
+            $statement->merchant_id = Session::get('merchant_id');
             $statement->created_at = date('d-m-Y H:i:s');
             $statement->created_by = Session::get('id');
             $statement->save();
@@ -481,7 +481,7 @@ class UsersImport implements ToModel,WithStartRow,WithLimit
             'status' => $status,
             'cat_source' => $status == 1 ? 'rule' : null,
             'cat_rule_id' => $status == 1 ? ($applied_rule ?: null) : null,
-            'merchant_id' => Session::get('id'),
+            'merchant_id' => Session::get('merchant_id'),
             'created_at' => date('d-m-Y H:i:s'),
             'created_by' => Session::get('id'),
          ]);

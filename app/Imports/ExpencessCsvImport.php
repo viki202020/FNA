@@ -691,7 +691,7 @@ class ExpencessCsvImport implements ToModel,WithStartRow,WithLimit
                'fyear' => $this->fyear,
                'voucher_no'=>$voucher_no,
                'status' => $status,
-               'merchant_id' => Session::get('id'),
+               'merchant_id' => Session::get('merchant_id'),
                'created_at' => date('d-m-Y H:i:s'),
                'created_by' => Session::get('id'),
             ]);

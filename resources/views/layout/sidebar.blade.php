@@ -34,12 +34,18 @@
       ['Bills', '/merchant/manage-bill', ['merchant/manage-bill*','merchant/bills*']],
       ['Products', '/merchant/manage-product', ['merchant/manage-product*']],
       ['Posting accounts', '/merchant/posting-accounts', ['merchant/posting-accounts*']],
-      ['Close book', '/merchant/manage-book', ['merchant/manage-book*']],
+      ['Close book', '/merchant/manage-book', ['merchant/manage-book*'], 'admin'],
+      ['Re-open a year', '/merchant/reopen-year', ['merchant/reopen-year*'], 'admin'],
+      ['Users', '/merchant/users', ['merchant/users*'], 'admin'],
+      ['Change password', '/merchant/change-password', ['merchant/change-password*']],
    ];
+   $fnaAdmin = session('role', 'admin') === 'admin';
+   foreach (['Company','Departments','Account heads','Posting accounts','Opening balances'] as $adminOnly) { foreach ($fnaMenu as $k => $it) { if ($it[0] === $adminOnly) { $fnaMenu[$k][3] = 'admin'; } } }
 @endphp
 <nav id="sidebarMenu" class="sidebar fna-sidebar d-lg-block collapse">
    <div class="fna-brand">FNA<small>Mobilpay</small></div>
    @foreach($fnaMenu as $item)
+      @if(($item[3] ?? '')==='admin' && !$fnaAdmin) @continue @endif
       @if($item[0]=='head')
          <div class="fna-head">{{ $item[1] }}</div>
       @else
@@ -47,6 +53,6 @@
       @endif
    @endforeach
    <div class="fna-foot">
-      <a href="{{ URL('logout') }}" class="fna-link">Sign out</a>
+      <form method="post" action="{{ URL('logout') }}" style="margin:0">@csrf<button type="submit" class="fna-link" style="background:none;border:0;width:100%;text-align:left;cursor:pointer">Sign out</button></form>
    </div>
 </nav>
